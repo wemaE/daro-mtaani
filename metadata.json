@@ -1,0 +1,6 @@
+{
+  "name": "DarasaMtaani",
+  "description": "Decentralized community learning grid connecting vulnerable learners with volunteer tutors and resources in Kenya's informal settlements.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
