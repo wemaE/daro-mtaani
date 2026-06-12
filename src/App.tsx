@@ -525,6 +525,33 @@ export default function App() {
               </div>
             </div>
 
+            {/* ABOUT DARASAMTAANI SECTION */}
+            <div className={`${tc.card} p-5 rounded-xl space-y-4 bg-white/40`}>
+              <h3 className="text-sm font-black text-[#35477B] border-b pb-2">
+                Kuhusu DarasaMtaani — Darasa la Mtaani kwa Kila Mtoto
+              </h3>
+              <p className="text-[11px] opacity-90 leading-relaxed">
+                <strong>DarasaMtaani</strong> (&quot;Street Classroom&quot;) is a mobile-first community learning network connecting underserved primary school students in Nairobi&apos;s informal settlements — Mathare, Kibera, Mukuru, and Kawangware — with vetted local volunteer tutors and nearby community resource hubs.
+              </p>
+              <p className="text-[11px] opacity-90 leading-relaxed">
+                Built for Kenya&apos;s Competency-Based Curriculum (CBC) era, DarasaMtaani works without expensive devices, fast internet, or constant adult supervision. Instead, it runs as a local matching grid powered by three core systems:
+              </p>
+              <div className="space-y-3 pt-1">
+                <div className="text-[11px] leading-relaxed">
+                  <strong>🎓 Volunteer Tutor Matching</strong> — Teacher-training students and education graduates earn verified field-hour certificates (exportable to LinkedIn) by tutoring children and helping parents understand CBC concepts.
+                </div>
+                <div className="text-[11px] leading-relaxed">
+                  <strong>⚖️ Ubuntu Priority Score (UPS)</strong> — A fairness algorithm that prioritizes children from households facing the greatest time and resource pressure — not just whoever asks first.
+                </div>
+                <div className="text-[11px] leading-relaxed">
+                  <strong>🗺️ Harambee Hub Routing</strong> — Automatically directs students to the nearest community center, library, or NGO lab with the WiFi, tablets, or solar power they need — with built-in capacity limits to prevent overcrowding.
+                </div>
+              </div>
+              <p className="text-[10px] opacity-80 italic border-t pt-2">
+                Every match is reviewed by a local Elder before it&apos;s confirmed, keeping the community in control of the technology.
+              </p>
+            </div>
+
             {/* CHOOSE YOUR ROLE SECTION */}
             <div className="space-y-3">
               <span className="text-[10px] font-bold uppercase tracking-wider block text-center">Chagua Jukumu Lako (Select Role)</span>
