@@ -55,10 +55,49 @@ import {
 } from 'lucide-react';
 
 export default function App() {
+  // Helper to parse route from location hash
+  const getRouteFromHash = (): string => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'landing';
+  };
+
   // Navigation & Routing States
   // 'landing' | 'login-student' | 'login-parent' | 'login-tutor' | 'login-admin' | 'reset-password' | 'intake' | 'preferences' | 'dashboard' | 'agents' | 'hubs' | 'badges' | 'parent' | 'admin-council' | 'settings'
-  const [currentRoute, _setCurrentRoute] = useState<string>('landing');
-  const [routeHistory, setRouteHistory] = useState<string[]>(['landing']);
+  const [currentRoute, _setCurrentRoute] = useState<string>(getRouteFromHash());
+  const [routeHistory, setRouteHistory] = useState<string[]>([getRouteFromHash()]);
+
+  // Synchronize browser history and hash navigation
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const targetRoute = event.state?.route || getRouteFromHash();
+      _setCurrentRoute(targetRoute);
+      setRouteHistory(prev => {
+        const idx = prev.indexOf(targetRoute);
+        if (idx !== -1) {
+          return prev.slice(0, idx + 1);
+        }
+        return [...prev, targetRoute];
+      });
+    };
+
+    const handleHashChange = () => {
+      const targetRoute = getRouteFromHash();
+      _setCurrentRoute(targetRoute);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Set initial hash if not set
+    if (!window.location.hash) {
+      window.history.replaceState({ route: 'landing' }, '', '#landing');
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   const setCurrentRoute = (route: string) => {
     setRouteHistory(prev => {
@@ -66,15 +105,13 @@ export default function App() {
       return [...prev, route];
     });
     _setCurrentRoute(route);
+    if (getRouteFromHash() !== route) {
+      window.history.pushState({ route }, '', `#${route}`);
+    }
   };
 
   const navigateBack = () => {
-    if (routeHistory.length <= 1) return;
-    const newHistory = [...routeHistory];
-    newHistory.pop(); // remove current route
-    const prevRoute = newHistory[newHistory.length - 1];
-    setRouteHistory(newHistory);
-    _setCurrentRoute(prevRoute);
+    window.history.back();
   };
   
   // Auth state
@@ -374,32 +411,6 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Navigation / Dashboard Switcher */}
-            <select
-              value={userRole || 'landing'}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === 'landing') {
-                  handleLogout();
-                } else {
-                  setUserRole(val as any);
-                  if (val === 'admin') {
-                    setCurrentRoute('admin-council');
-                  } else {
-                    setCurrentRoute('dashboard');
-                  }
-                  playVoiceAnnounce(`Umeingia kwenye dashboard ya ${val}`);
-                }
-              }}
-              className="px-2 py-1 border-2 border-[#35477B] rounded-lg text-[10px] font-bold bg-[#E7E27C] text-[#35477B] focus:outline-none cursor-pointer"
-            >
-              <option value="landing">🏠 Landing</option>
-              <option value="student">👦 Student</option>
-              <option value="parent">👩 Parent</option>
-              <option value="tutor">🎓 Tutor</option>
-              <option value="admin">🛡️ Elders</option>
-            </select>
-
             {/* Accessibility triggers */}
             <button
               onClick={() => {
