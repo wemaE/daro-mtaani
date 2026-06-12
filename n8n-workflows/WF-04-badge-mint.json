@@ -1,0 +1,163 @@
+{
+  "name": "WF-04-badge-mint",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "session-completed-webhook",
+        "options": {}
+      },
+      "name": "Session Completed Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"body\"][\"completedSessionsCount\"]}}",
+              "operation": "largerEqual",
+              "value2": 5
+            }
+          ]
+        }
+      },
+      "name": "Badge Threshold Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://daro-mtaani.vercel.app/api/badges/generate-pdf",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "tutorName",
+              "value": "={{$json[\"body\"][\"tutorName\"]}}"
+            },
+            {
+              "name": "badgeName",
+              "value": "Mtaani Leader Badge"
+            }
+          ]
+        }
+      },
+      "name": "Generate PDF Certificate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://blob.vercel-storage.com/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.VERCEL_BLOB_READ_WRITE_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file",
+              "value": "={{$json[\"fileBase64\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Vercel Blob Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/ugcPosts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.LINKEDIN_ACCESS_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        }
+      },
+      "name": "LinkedIn API Push",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 200]
+    }
+  ],
+  "connections": {
+    "Session Completed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Badge Threshold Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Badge Threshold Check": {
+      "main": [
+        [
+          {
+            "node": "Generate PDF Certificate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Generate PDF Certificate": {
+      "main": [
+        [
+          {
+            "node": "Vercel Blob Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vercel Blob Upload": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn API Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

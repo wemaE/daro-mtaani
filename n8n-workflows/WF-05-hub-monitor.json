@@ -1,0 +1,116 @@
+{
+  "name": "WF-05-hub-monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "name": "Cron 15min Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://daro-mtaani.vercel.app/api/hubs/list",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        }
+      },
+      "name": "Get All Hub Capacities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"capacityStatus\"]}}",
+              "operation": "largerEqual",
+              "value2": 80
+            }
+          ]
+        }
+      },
+      "name": "Flag >=80%",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://daro-mtaani.vercel.app/api/hubs/route",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        }
+      },
+      "name": "Trigger Re-route Queue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [700, 200]
+    }
+  ],
+  "connections": {
+    "Cron 15min Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get All Hub Capacities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Hub Capacities": {
+      "main": [
+        [
+          {
+            "node": "Flag >=80%",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flag >=80%": {
+      "main": [
+        [
+          {
+            "node": "Trigger Re-route Queue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  }
+}

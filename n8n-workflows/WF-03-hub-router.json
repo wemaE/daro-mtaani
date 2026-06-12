@@ -1,0 +1,100 @@
+{
+  "name": "WF-03-hub-router",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "hub-need-flagged",
+        "options": {}
+      },
+      "name": "Need Flagged Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://daro-mtaani.vercel.app/api/hubs/route",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        }
+      },
+      "name": "Vercel Hub Router API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"routedHubs\"].length > 0}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Check Capacity Ok",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Tafadhali nenda {{$json[\"routedHubs\"][0][\"name\"]}} kwa usaidizi wa wifi au masomo. Location: {{$json[\"routedHubs\"][0][\"settlement\"]}}.",
+        "recipients": "={{$json[\"parentContact\"]}}"
+      },
+      "name": "SMS Directions",
+      "type": "n8n-nodes-base.africasTalking",
+      "typeVersion": 1,
+      "position": [700, 200]
+    }
+  ],
+  "connections": {
+    "Need Flagged Trigger": {
+      "main": [
+        [
+          {
+            "node": "Vercel Hub Router API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vercel Hub Router API": {
+      "main": [
+        [
+          {
+            "node": "Check Capacity Ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Capacity Ok": {
+      "main": [
+        [
+          {
+            "node": "SMS Directions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  }
+}

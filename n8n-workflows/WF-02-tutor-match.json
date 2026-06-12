@@ -1,0 +1,128 @@
+{
+  "name": "WF-02-tutor-match",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "tutor-match-request",
+        "options": {}
+      },
+      "name": "Match Request Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"body\"][\"elderApprovalPin\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "Elder PIN Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Tafadhali thibitisha kipindi chako kwa kufuata link: https://daro-mtaani.vercel.app/confirm-session?id={{$json[\"body\"][\"sessionId\"]}}",
+        "recipients": "={{$json[\"body\"][\"tutorPhone\"]}}"
+      },
+      "name": "SMS Tutor Accept Link",
+      "type": "n8n-nodes-base.africasTalking",
+      "typeVersion": 1,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://daro-mtaani.vercel.app/api/sessions/create",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "elderApprovalPin",
+              "value": "={{$json[\"body\"][\"elderApprovalPin\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Create Session in DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "calendarId": "primary",
+        "start": "={{$json[\"scheduledAt\"]}}",
+        "end": "={{$json[\"scheduledAt\"]}}",
+        "summary": "=DarasaMtaani tutoring session with {{$json[\"studentName\"]}}"
+      },
+      "name": "Google Calendar Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [900, 200]
+    }
+  ],
+  "connections": {
+    "Match Request Trigger": {
+      "main": [
+        [
+          {
+            "node": "Elder PIN Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Elder PIN Check": {
+      "main": [
+        [
+          {
+            "node": "SMS Tutor Accept Link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "SMS Tutor Accept Link": {
+      "main": [
+        [
+          {
+            "node": "Create Session in DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Session in DB": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

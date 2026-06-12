@@ -1,0 +1,81 @@
+{
+  "name": "WF-01-ups-recalc",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "household-webhook",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://daro-mtaani.vercel.app/api/ups/calculate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "time_poverty",
+              "value": "={{$json[\"body\"][\"time_poverty\"]}}"
+            },
+            {
+              "name": "material_deficit",
+              "value": "={{$json[\"body\"][\"material_deficit\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Recalc UPS API Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Habari, dynamic tutor slot priority recalculated to {{$json[\"ups_score\"]}}.",
+        "recipients": "={{$json[\"tutor_phone\"]}}"
+      },
+      "name": "Africa's Talking SMS",
+      "type": "n8n-nodes-base.africasTalking",
+      "typeVersion": 1,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Recalc UPS API Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recalc UPS API Call": {
+      "main": [
+        [
+          {
+            "node": "Africa's Talking SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
