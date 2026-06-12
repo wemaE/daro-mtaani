@@ -37,6 +37,7 @@ import {
   GraduationCap,
   ShieldCheck,
   ArrowRight,
+  ArrowLeft,
   Lock,
   Download,
   Share2,
@@ -56,7 +57,25 @@ import {
 export default function App() {
   // Navigation & Routing States
   // 'landing' | 'login-student' | 'login-parent' | 'login-tutor' | 'login-admin' | 'reset-password' | 'intake' | 'preferences' | 'dashboard' | 'agents' | 'hubs' | 'badges' | 'parent' | 'admin-council' | 'settings'
-  const [currentRoute, setCurrentRoute] = useState<string>('landing');
+  const [currentRoute, _setCurrentRoute] = useState<string>('landing');
+  const [routeHistory, setRouteHistory] = useState<string[]>(['landing']);
+
+  const setCurrentRoute = (route: string) => {
+    setRouteHistory(prev => {
+      if (prev[prev.length - 1] === route) return prev;
+      return [...prev, route];
+    });
+    _setCurrentRoute(route);
+  };
+
+  const navigateBack = () => {
+    if (routeHistory.length <= 1) return;
+    const newHistory = [...routeHistory];
+    newHistory.pop(); // remove current route
+    const prevRoute = newHistory[newHistory.length - 1];
+    setRouteHistory(newHistory);
+    _setCurrentRoute(prevRoute);
+  };
   
   // Auth state
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'tutor' | 'admin' | null>(null);
@@ -331,15 +350,26 @@ export default function App() {
       {/* 1. TOP BRAND HEADER */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b-2 border-[#35477B] py-3.5 px-4 shadow-sm">
         <div className="max-w-md mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => { setCurrentRoute('landing'); setUserRole(null); }} title="Go to Home/Landing">
-            {/* Dark Blue Book Logo SVG based on attached brand concept */}
-            <svg className="w-8 h-6 shrink-0" viewBox="0 0 100 80" fill="none">
-              <path d="M10 10 C30 10, 48 20, 48 70 C48 70, 30 50, 10 50 Z" fill="#35477B" />
-              <path d="M90 10 C70 10, 52 20, 52 70 C52 70, 70 50, 90 50 Z" fill="#35477B" />
-            </svg>
-            <div>
-              <h1 className="text-lg font-black tracking-tight text-[#35477B] leading-none">Darasa MTAANI</h1>
-              <span className="text-[9px] text-[#35477B]/80 font-bold uppercase tracking-wider">Learning Lives Next Door</span>
+          <div className="flex items-center gap-2">
+            {routeHistory.length > 1 && (
+              <button
+                onClick={navigateBack}
+                className="p-1 rounded hover:bg-slate-100 text-[#35477B] transition-transform active:scale-95"
+                title="Go Back"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => { setCurrentRoute('landing'); setUserRole(null); setRouteHistory(['landing']); }} title="Go to Home/Landing">
+              {/* Dark Blue Book Logo SVG based on attached brand concept */}
+              <svg className="w-8 h-6 shrink-0" viewBox="0 0 100 80" fill="none">
+                <path d="M10 10 C30 10, 48 20, 48 70 C48 70, 30 50, 10 50 Z" fill="#35477B" />
+                <path d="M90 10 C70 10, 52 20, 52 70 C52 70, 70 50, 90 50 Z" fill="#35477B" />
+              </svg>
+              <div>
+                <h1 className="text-lg font-black tracking-tight text-[#35477B] leading-none">Darasa MTAANI</h1>
+                <span className="text-[9px] text-[#35477B]/80 font-bold uppercase tracking-wider">Learning Lives Next Door</span>
+              </div>
             </div>
           </div>
 
