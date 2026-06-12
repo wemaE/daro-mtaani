@@ -1,15 +1,10 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { PDFDocument, rgb } from 'pdf-lib';
+import { put } from '@vercel/blob';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  // Shared secret validation
-  const sharedSecret = process.env.N8N_SHARED_SECRET;
-  const clientSecret = req.headers['x-n8n-secret'];
-  if (sharedSecret && clientSecret !== sharedSecret) {
-    return res.status(403).json({ error: 'Unauthorized shared secret' });
   }
 
   const { tutorName, badgeName, dateEarned } = req.body || {};
@@ -18,15 +13,47 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing tutorName or badgeName' });
   }
 
-  // Emulate a PDF creation and base64 output
-  const pdfMetadata = {
-    title: `Certificate of Achievement: ${badgeName}`,
-    recipient: tutorName,
-    date: dateEarned || new Date().toISOString(),
-    issuer: "Elders Council - DarasaMtaani",
-    certId: `DM-CERT-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
-    fileBase64: "JVBERi0xLjQKJdPp9oQ...[emulated pdf content base64]...=="
-  };
+  try {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([600, 400]);
 
-  return res.status(200).json(pdfMetadata);
+    page.drawText('Certificate of Achievement', {
+      x: 50,
+      y: 300,
+      size: 30,
+      color: rgb(0, 0.3, 0.7)
+    });
+
+    page.drawText(`This is proudly presented to: ${tutorName}`, {
+      x: 50,
+      y: 200,
+      size: 20
+    });
+
+    page.drawText(`For earning the badge: ${badgeName}`, {
+      x: 50,
+      y: 150,
+      size: 16
+    });
+
+    page.drawText(`Date: ${dateEarned || new Date().toLocaleDateString()}`, {
+      x: 50,
+      y: 100,
+      size: 12
+    });
+
+    const pdfBytes = await pdfDoc.save();
+
+    const token = process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+    const filename = `badges/cert-${Date.now()}.pdf`;
+
+    const blobResult = await put(filename, Buffer.from(pdfBytes), {
+      access: 'public',
+      token
+    });
+
+    return res.status(200).json({ url: blobResult.url });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || 'Failed to generate PDF' });
+  }
 }

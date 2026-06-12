@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { hunterMatch } from '../../src/lib/agents/hunter';
+import { hunterMatch } from '../../../src/lib/agents/hunter';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {

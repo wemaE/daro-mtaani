@@ -6,27 +6,41 @@
         "path": "session-completed-webhook",
         "options": {}
       },
-      "name": "Session Completed Trigger",
+      "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [100, 300]
     },
     {
       "parameters": {
+        "operation": "update",
+        "table": "tutors",
+        "updateKey": "id",
+        "fields": {
+          "badge_level": "={{$json[\"body\"][\"new\"][\"badge_level\"] + 1}}"
+        }
+      },
+      "name": "Update Tutor Sessions Count",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
         "conditions": {
           "number": [
             {
-              "value1": "={{$json[\"body\"][\"completedSessionsCount\"]}}",
-              "operation": "largerEqual",
+              "value1": "={{$node[\"Update Tutor Sessions Count\"].json[\"badge_level\"]}}",
+              "operation": "larger",
               "value2": 5
             }
           ]
         }
       },
-      "name": "Badge Threshold Check",
+      "name": "Check Badge Threshold",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [300, 300]
+      "position": [500, 300]
     },
     {
       "parameters": {
@@ -36,7 +50,7 @@
         "headerParameters": {
           "parameters": [
             {
-              "name": "x-n8n-secret",
+              "name": "x-n8n-shared-secret",
               "value": "={{$env.N8N_SHARED_SECRET}}"
             }
           ]
@@ -46,48 +60,34 @@
           "parameters": [
             {
               "name": "tutorName",
-              "value": "={{$json[\"body\"][\"tutorName\"]}}"
+              "value": "={{$json[\"display_name\"]}}"
             },
             {
               "name": "badgeName",
-              "value": "Mtaani Leader Badge"
+              "value": "Gold Certificate of Mentorship"
             }
           ]
         }
       },
-      "name": "Generate PDF Certificate",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [500, 200]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://blob.vercel-storage.com/upload",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{$env.VERCEL_BLOB_READ_WRITE_TOKEN}}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "file",
-              "value": "={{$json[\"fileBase64\"]}}"
-            }
-          ]
-        }
-      },
-      "name": "Vercel Blob Upload",
+      "name": "Generate PDF API Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "badges",
+        "fields": {
+          "tutor_id": "={{$node[\"Update Tutor Sessions Count\"].json[\"id\"]}}",
+          "badge_type": "Gold Mentorship Certificate",
+          "certificate_url": "={{$json[\"url\"]}}"
+        }
+      },
+      "name": "Insert Badge Row",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 200]
     },
     {
       "parameters": {
@@ -98,38 +98,68 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{$env.LINKEDIN_ACCESS_TOKEN}}"
+              "value": "=Bearer {{$env.LINKEDIN_API_KEY}}"
             }
           ]
         },
         "sendBody": true,
         "bodyParameters": {
-          "parameters": []
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=Check out my new Gold Certificate of Mentorship from DarasaMtaani! {{$node[\"Generate PDF API Call\"].json[\"url\"]}}"
+            }
+          ]
         }
       },
-      "name": "LinkedIn API Push",
+      "name": "LinkedIn Post Certificate",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [900, 200]
+      "position": [1100, 200]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "badges",
+        "updateKey": "id",
+        "fields": {
+          "linkedin_pushed": true
+        }
+      },
+      "name": "Update Badge Push Status",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1300, 200]
     }
   ],
   "connections": {
-    "Session Completed Trigger": {
+    "Webhook Trigger": {
       "main": [
         [
           {
-            "node": "Badge Threshold Check",
+            "node": "Update Tutor Sessions Count",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Badge Threshold Check": {
+    "Update Tutor Sessions Count": {
       "main": [
         [
           {
-            "node": "Generate PDF Certificate",
+            "node": "Check Badge Threshold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Badge Threshold": {
+      "main": [
+        [
+          {
+            "node": "Generate PDF API Call",
             "type": "main",
             "index": 0
           }
@@ -137,22 +167,33 @@
         []
       ]
     },
-    "Generate PDF Certificate": {
+    "Generate PDF API Call": {
       "main": [
         [
           {
-            "node": "Vercel Blob Upload",
+            "node": "Insert Badge Row",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Vercel Blob Upload": {
+    "Insert Badge Row": {
       "main": [
         [
           {
-            "node": "LinkedIn API Push",
+            "node": "LinkedIn Post Certificate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Post Certificate": {
+      "main": [
+        [
+          {
+            "node": "Update Badge Push Status",
             "type": "main",
             "index": 0
           }

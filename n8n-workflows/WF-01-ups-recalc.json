@@ -9,17 +9,17 @@
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [250, 300]
+      "position": [100, 300]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://daro-mtaani.vercel.app/api/ups/calculate",
+        "url": "https://daro-mtaani.vercel.app/api/ups/calculate",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "x-n8n-secret",
+              "name": "x-n8n-shared-secret",
               "value": "={{$env.N8N_SHARED_SECRET}}"
             }
           ]
@@ -28,12 +28,12 @@
         "bodyParameters": {
           "parameters": [
             {
-              "name": "time_poverty",
-              "value": "={{$json[\"body\"][\"time_poverty\"]}}"
+              "name": "time_poverty_score",
+              "value": "={{$json[\"body\"][\"record\"][\"time_poverty_score\"]}}"
             },
             {
-              "name": "material_deficit",
-              "value": "={{$json[\"body\"][\"material_deficit\"]}}"
+              "name": "material_deficit_score",
+              "value": "={{$json[\"body\"][\"record\"][\"material_deficit_score\"]}}"
             }
           ]
         }
@@ -41,17 +41,45 @@
       "name": "Recalc UPS API Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [450, 300]
+      "position": [300, 300]
     },
     {
       "parameters": {
-        "message": "=Habari, dynamic tutor slot priority recalculated to {{$json[\"ups_score\"]}}.",
-        "recipients": "={{$json[\"tutor_phone\"]}}"
+        "method": "POST",
+        "url": "https://daro-mtaani.vercel.app/api/n8n/resort-queue",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-shared-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "settlement",
+              "value": "={{$json[\"body\"][\"record\"][\"settlement\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Resort Queue API Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Habari, kipaumbele cha foleni ya mkufunzi kimesasishwa. UPS score yako ni {{$json[\"ups_score\"]}}.",
+        "recipients": "={{$json[\"body\"][\"record\"][\"phone_hash\"]}}"
       },
       "name": "Africa's Talking SMS",
       "type": "n8n-nodes-base.africasTalking",
       "typeVersion": 1,
-      "position": [650, 300]
+      "position": [700, 300]
     }
   ],
   "connections": {
@@ -67,6 +95,17 @@
       ]
     },
     "Recalc UPS API Call": {
+      "main": [
+        [
+          {
+            "node": "Resort Queue API Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resort Queue API Call": {
       "main": [
         [
           {

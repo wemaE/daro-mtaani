@@ -3,37 +3,31 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
+        "triggerTimes": {
+          "value": [
             {
-              "field": "minutes",
-              "minutesInterval": 15
+              "mode": "everyMinute",
+              "value": 15
             }
           ]
         }
       },
-      "name": "Cron 15min Trigger",
+      "name": "Cron Trigger",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
       "position": [100, 300]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "https://daro-mtaani.vercel.app/api/hubs/list",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-n8n-secret",
-              "value": "={{$env.N8N_SHARED_SECRET}}"
-            }
-          ]
+        "operation": "select",
+        "table": "hubs",
+        "filters": {
+          "over_capacity": true
         }
       },
-      "name": "Get All Hub Capacities",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "name": "Select Flagged Hubs",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
       "position": [300, 300]
     },
     {
@@ -41,14 +35,14 @@
         "conditions": {
           "number": [
             {
-              "value1": "={{$json[\"capacityStatus\"]}}",
-              "operation": "largerEqual",
-              "value2": 80
+              "value1": "={{$json.length}}",
+              "operation": "larger",
+              "value2": 0
             }
           ]
         }
       },
-      "name": "Flag >=80%",
+      "name": "Check Flagged Exist",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [500, 300]
@@ -61,55 +55,81 @@
         "headerParameters": {
           "parameters": [
             {
-              "name": "x-n8n-secret",
+              "name": "x-n8n-shared-secret",
               "value": "={{$env.N8N_SHARED_SECRET}}"
             }
           ]
         },
         "sendBody": true,
         "bodyParameters": {
-          "parameters": []
+          "parameters": [
+            {
+              "name": "landmarkCode",
+              "value": "={{$json[\"settlement\"]}}-CENTRAL"
+            }
+          ]
         }
       },
-      "name": "Trigger Re-route Queue",
+      "name": "Re-Route Pending Queue API",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "message": "=Kituo chako cha {{$node[\"Select Flagged Hubs\"].json[\"name\"]}} kimezidi uwezo (80%+). Tunahamisha wanafunzi.",
+        "recipients": "+254700000000"
+      },
+      "name": "SMS Hub Manager",
+      "type": "n8n-nodes-base.africasTalking",
+      "typeVersion": 1,
+      "position": [900, 200]
     }
   ],
   "connections": {
-    "Cron 15min Trigger": {
+    "Cron Trigger": {
       "main": [
         [
           {
-            "node": "Get All Hub Capacities",
+            "node": "Select Flagged Hubs",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get All Hub Capacities": {
+    "Select Flagged Hubs": {
       "main": [
         [
           {
-            "node": "Flag >=80%",
+            "node": "Check Flagged Exist",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Flag >=80%": {
+    "Check Flagged Exist": {
       "main": [
         [
           {
-            "node": "Trigger Re-route Queue",
+            "node": "Re-Route Pending Queue API",
             "type": "main",
             "index": 0
           }
         ],
         []
+      ]
+    },
+    "Re-Route Pending Queue API": {
+      "main": [
+        [
+          {
+            "node": "SMS Hub Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   }

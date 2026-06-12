@@ -3,49 +3,23 @@
   "nodes": [
     {
       "parameters": {
-        "path": "tutor-match-request",
+        "path": "tutor-match-webhook",
         "options": {}
       },
-      "name": "Match Request Trigger",
+      "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [100, 300]
     },
     {
       "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{$json[\"body\"][\"elderApprovalPin\"]}}",
-              "operation": "isNotEmpty"
-            }
-          ]
-        }
-      },
-      "name": "Elder PIN Check",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [300, 300]
-    },
-    {
-      "parameters": {
-        "message": "=Tafadhali thibitisha kipindi chako kwa kufuata link: https://daro-mtaani.vercel.app/confirm-session?id={{$json[\"body\"][\"sessionId\"]}}",
-        "recipients": "={{$json[\"body\"][\"tutorPhone\"]}}"
-      },
-      "name": "SMS Tutor Accept Link",
-      "type": "n8n-nodes-base.africasTalking",
-      "typeVersion": 1,
-      "position": [500, 200]
-    },
-    {
-      "parameters": {
         "method": "POST",
-        "url": "https://daro-mtaani.vercel.app/api/sessions/create",
+        "url": "https://daro-mtaani.vercel.app/api/agents/scout/match",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "x-n8n-secret",
+              "name": "x-n8n-shared-secret",
               "value": "={{$env.N8N_SHARED_SECRET}}"
             }
           ]
@@ -54,47 +28,177 @@
         "bodyParameters": {
           "parameters": [
             {
+              "name": "householdId",
+              "value": "={{$json[\"body\"][\"record\"][\"household_id\"]}}"
+            },
+            {
+              "name": "cbcStrand",
+              "value": "={{$json[\"body\"][\"record\"][\"cbc_strands\"][0]}}"
+            }
+          ]
+        }
+      },
+      "name": "Scout Match API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://daro-mtaani.vercel.app/api/agents/hunter/match",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-shared-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "studentId",
+              "value": "={{$json[\"body\"][\"record\"][\"id\"]}}"
+            },
+            {
+              "name": "tutorId",
+              "value": "={{$json[\"tutorCandidates\"][0][\"id\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Hunter Match Initial API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"status\"]}}",
+              "value2": "pending_elder_approval"
+            }
+          ]
+        }
+      },
+      "name": "Check Pending Approval",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Tafadhali thibitisha kipindi kwa kutumia PIN ya Wazee. Link: https://daro-mtaani.vercel.app/confirm-session?studentId={{$node[\"Hunter Match Initial API\"].json[\"studentId\"]}}&tutorId={{$node[\"Hunter Match Initial API\"].json[\"tutorId\"]}}",
+        "recipients": "={{$node[\"Scout Match API\"].json[\"tutorCandidates\"][0][\"phone_hash\"]}}"
+      },
+      "name": "SMS Tutor for Approval",
+      "type": "n8n-nodes-base.africasTalking",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "path": "elder-approval-webhook",
+        "options": {}
+      },
+      "name": "Wait for Approval Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [1100, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://daro-mtaani.vercel.app/api/agents/hunter/match",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-shared-secret",
+              "value": "={{$env.N8N_SHARED_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "studentId",
+              "value": "={{$json[\"body\"][\"studentId\"]}}"
+            },
+            {
+              "name": "tutorId",
+              "value": "={{$json[\"body\"][\"tutorId\"]}}"
+            },
+            {
               "name": "elderApprovalPin",
               "value": "={{$json[\"body\"][\"elderApprovalPin\"]}}"
             }
           ]
         }
       },
-      "name": "Create Session in DB",
+      "name": "Hunter Match Finalize API",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [700, 200]
+      "position": [1300, 200]
     },
     {
       "parameters": {
         "calendarId": "primary",
-        "start": "={{$json[\"scheduledAt\"]}}",
-        "end": "={{$json[\"scheduledAt\"]}}",
-        "summary": "=DarasaMtaani tutoring session with {{$json[\"studentName\"]}}"
+        "start": "={{$json[\"payload\"][\"when\"]}}",
+        "end": "={{$json[\"payload\"][\"when\"]}}",
+        "summary": "=Kipindi cha DarasaMtaani na Mwanafunzi"
       },
       "name": "Google Calendar Event",
       "type": "n8n-nodes-base.googleCalendar",
       "typeVersion": 1,
-      "position": [900, 200]
+      "position": [1500, 200]
     }
   ],
   "connections": {
-    "Match Request Trigger": {
+    "Webhook Trigger": {
       "main": [
         [
           {
-            "node": "Elder PIN Check",
+            "node": "Scout Match API",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Elder PIN Check": {
+    "Scout Match API": {
       "main": [
         [
           {
-            "node": "SMS Tutor Accept Link",
+            "node": "Hunter Match Initial API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Match Initial API": {
+      "main": [
+        [
+          {
+            "node": "Check Pending Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Pending Approval": {
+      "main": [
+        [
+          {
+            "node": "SMS Tutor for Approval",
             "type": "main",
             "index": 0
           }
@@ -102,18 +206,29 @@
         []
       ]
     },
-    "SMS Tutor Accept Link": {
+    "SMS Tutor for Approval": {
       "main": [
         [
           {
-            "node": "Create Session in DB",
+            "node": "Wait for Approval Webhook",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Create Session in DB": {
+    "Wait for Approval Webhook": {
+      "main": [
+        [
+          {
+            "node": "Hunter Match Finalize API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Match Finalize API": {
       "main": [
         [
           {

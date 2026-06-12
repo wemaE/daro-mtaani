@@ -17,27 +17,50 @@ npm install
 ```
 
 ### 2. Configure Environment Variables
-Create a `.env.local` or configure Vercel settings with the values shown in [.env.example](.env.example):
-* `VITE_SUPABASE_URL`: Your Supabase API endpoint.
-* `VITE_SUPABASE_ANON_KEY`: Your Supabase anon client key.
-* `N8N_SHARED_SECRET`: Secret header key for verifying incoming n8n calls.
+Create a `.env` or configure Vercel settings with the values shown in [.env.example](.env.example):
+* `SUPABASE_URL`: Your Supabase API endpoint.
+* `SUPABASE_ANON_KEY`: Your Supabase anon client key.
+* `SUPABASE_SERVICE_ROLE_KEY`: Service role key for bypass RLS operations in backend / workflows.
+* `N8N_SHARED_SECRET`: Secret header key for verifying incoming n8n calls. Ensure this matches consistently across Vercel environment variables and the n8n execution environment.
 
-### 3. Supabase Migrations
-Apply the migrations in [supabase/migrations/00_schema.sql](supabase/migrations/00_schema.sql) using the Supabase dashboard SQL editor or Supabase CLI. This configures:
-* Tables for households, students, tutors, sessions, badges, and elders.
-* PostGIS geography types for hubs.
+### 3. Supabase Database Schema Migrations
+To push migrations to your live Supabase database instance:
+```bash
+supabase login
+supabase link --project-ref your-project-ref
+supabase db push
+```
+This migration configuration creates:
+* Tables for households, students, tutors, sessions, badges, elders, landmarks, bias audit logs, and scout invocations.
+* PostGIS geography indices for hubs and landmarks.
 * Row-Level Security (RLS) policies scoped to the phone session.
-* Automated 180-day data deletion policy.
+* Automated 180-day data deletion policy via `pg_cron`.
+* Automatic 15-minute hub capacity recomputation.
+* Database trigger `enforce_elder_pin` guarding session confirmations.
 
-### 4. Import n8n Workflows
-Import the 5 workflows in `/n8n-workflows/` directory into your n8n workspace:
-* **WF-01**: Recalculates UPS and triggers SMS via Africa's Talking.
-* **WF-02**: Confirms tutor match and verifies elder PIN.
-* **WF-03**: Routes resource requests to nearby available hubs.
-* **WF-04**: Mints volunteer badges and pushes certifications to LinkedIn.
-* **WF-05**: Monitors hub capacity flags to trigger queue re-routing.
+### 4. Register Supabase Database Webhooks
+Register webhooks in the Supabase Dashboard (`Database` -> `Webhooks`) pointing to the corresponding n8n workflow webhook triggers:
+* **households (Insert/Update)** -> Point to `WF-01-ups-recalc` webhook.
+* **students (Insert)** -> Point to `WF-02-tutor-match` webhook.
+* **tutors (Update, where verified_by_elder changes false -> true)** -> Point to `WF-06-tutor-verification` webhook.
+* **sessions (Update, where status changes to completed)** -> Point to `WF-04-badge-mint` webhook.
 
-### 5. Running local development
+### 5. Import n8n Workflows
+Import the 6 workflows in `/n8n-workflows/` directory into your n8n workspace:
+* **WF-01-ups-recalc.json**: Recalculates UPS and triggers queue re-sorting.
+* **WF-02-tutor-match.json**: Confirms tutor match and verifies elder PIN.
+* **WF-03-hub-router.json**: Routes resource requests to nearby available hubs.
+* **WF-04-badge-mint.json**: Mints volunteer badges and pushes certifications to LinkedIn.
+* **WF-05-hub-monitor.json**: Monitors hub capacity flags to trigger queue re-routing.
+* **WF-06-tutor-verification.json**: Notifies tutors upon Elder confirmation and logs to Bias Audit.
+
+Configure credentials in n8n for:
+- **Supabase**: URL and Service Role API Key.
+- **Africa's Talking**: Username, API Key, and Sender ID.
+- **LinkedIn**: LinkedIn UGC Post App Credentials.
+- **Google Calendar**: Google OAuth credentials.
+
+### 6. Running local development
 ```bash
 npm run dev
 ```

@@ -3,10 +3,10 @@
   "nodes": [
     {
       "parameters": {
-        "path": "hub-need-flagged",
+        "path": "tutor-resource-webhook",
         "options": {}
       },
-      "name": "Need Flagged Trigger",
+      "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [100, 300]
@@ -19,17 +19,26 @@
         "headerParameters": {
           "parameters": [
             {
-              "name": "x-n8n-secret",
+              "name": "x-n8n-shared-secret",
               "value": "={{$env.N8N_SHARED_SECRET}}"
             }
           ]
         },
         "sendBody": true,
         "bodyParameters": {
-          "parameters": []
+          "parameters": [
+            {
+              "name": "landmarkCode",
+              "value": "={{$json[\"body\"][\"landmarkCode\"]}}"
+            },
+            {
+              "name": "requiredAssets",
+              "value": "={{$json[\"body\"][\"requiredAssets\"]}}"
+            }
+          ]
         }
       },
-      "name": "Vercel Hub Router API",
+      "name": "Hub Route API Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [300, 300]
@@ -37,63 +46,85 @@
     {
       "parameters": {
         "conditions": {
-          "boolean": [
+          "number": [
             {
-              "value1": "={{$json[\"routedHubs\"].length > 0}}",
-              "value2": true
+              "value1": "={{$json[\"length\"]}}",
+              "operation": "larger",
+              "value2": 0
             }
           ]
         }
       },
-      "name": "Check Capacity Ok",
+      "name": "Hubs Found Check",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [500, 300]
     },
     {
       "parameters": {
-        "message": "=Tafadhali nenda {{$json[\"routedHubs\"][0][\"name\"]}} kwa usaidizi wa wifi au masomo. Location: {{$json[\"routedHubs\"][0][\"settlement\"]}}.",
-        "recipients": "={{$json[\"parentContact\"]}}"
+        "message": "=Habari, tumepata kituo cha karibu cha kujifunzia: {{$json[0][\"name\"]}}.",
+        "recipients": "={{$node[\"Webhook Trigger\"].json[\"body\"][\"parentPhone\"]}}"
       },
-      "name": "SMS Directions",
+      "name": "SMS Parent Directions",
       "type": "n8n-nodes-base.africasTalking",
       "typeVersion": 1,
       "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "bias_audit_log",
+        "fields": {
+          "action": "no_hub_available",
+          "settlement": "={{$node[\"Webhook Trigger\"].json[\"body\"][\"settlement\"]}}",
+          "notes": "=No hubs found for landmark {{$node[\"Webhook Trigger\"].json[\"body\"][\"landmarkCode\"]}}"
+        }
+      },
+      "name": "Insert Bias Audit Log",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [700, 400]
     }
   ],
   "connections": {
-    "Need Flagged Trigger": {
+    "Webhook Trigger": {
       "main": [
         [
           {
-            "node": "Vercel Hub Router API",
+            "node": "Hub Route API Call",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Vercel Hub Router API": {
+    "Hub Route API Call": {
       "main": [
         [
           {
-            "node": "Check Capacity Ok",
+            "node": "Hubs Found Check",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Check Capacity Ok": {
+    "Hubs Found Check": {
       "main": [
         [
           {
-            "node": "SMS Directions",
+            "node": "SMS Parent Directions",
             "type": "main",
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Insert Bias Audit Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   }

@@ -1,0 +1,66 @@
+{
+  "name": "WF-06-tutor-verification",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "tutor-verification-webhook",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Habari, umethibitishwa kama mkufunzi kwenye DarasaMtaani! Sasa unaweza kuanza kupokea vipindi.",
+        "recipients": "={{$json[\"body\"][\"record\"][\"phone_hash\"]}}"
+      },
+      "name": "SMS Tutor Verified",
+      "type": "n8n-nodes-base.africasTalking",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "bias_audit_log",
+        "fields": {
+          "tutor_id": "={{$json[\"body\"][\"record\"][\"id\"]}}",
+          "elder_id": "={{$json[\"body\"][\"record\"][\"verified_by_elder_id\"]}}",
+          "action": "tutor_verified",
+          "settlement": "={{$json[\"body\"][\"record\"][\"settlement\"]}}",
+          "protocol": "TRACK"
+        }
+      },
+      "name": "Insert Bias Audit Log",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "SMS Tutor Verified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMS Tutor Verified": {
+      "main": [
+        [
+          {
+            "node": "Insert Bias Audit Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
