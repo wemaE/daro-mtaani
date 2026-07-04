@@ -1,0 +1,33 @@
+{
+  "name": "WF-10-weekly-progress-digest",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "value": [{ "mode": "custom", "cronExpression": "0 5 * * 1" }]
+        }
+      },
+      "name": "Monday 8AM EAT Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "digest@darasamtaani.org",
+        "toEmail": "={{$json.email}}",
+        "subject": "Dada na Kaka: Ripoti yako ya juma hili",
+        "html": "<h3>Weekly Progress Digest</h3><p>Keep up the great work! Ready for another great week of learning next door?</p>"
+      },
+      "name": "Send Weekly Summary",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [300, 300]
+    }
+  ],
+  "connections": {
+    "Monday 8AM EAT Cron": {
+      "main": [[{ "node": "Send Weekly Summary", "type": "main", "index": 0 }]]
+    }
+  }
+}

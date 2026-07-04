@@ -1,0 +1,68 @@
+{
+  "name": "WF-07-student-onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "student-onboarding-webhook",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "profiles",
+        "fields": {
+          "id": "={{$json.body.userId}}",
+          "role": "student",
+          "display_name": "={{$json.body.displayName}}",
+          "phone": "={{$json.body.phone}}"
+        }
+      },
+      "name": "Create Student Profile",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "karibu@darasamtaani.org",
+        "toEmail": "={{$json.body.email}}",
+        "subject": "Karibu DarasaMtaani!",
+        "html": "<h3>Karibu kwenye DarasaMtaani, {{$json.body.displayName}}!</h3><p>Your profile is setup. Let's start learning!</p>"
+      },
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "user_badges",
+        "fields": {
+          "user_id": "={{$node[\"Create Student Profile\"].json[\"id\"]}}",
+          "badge_id": "welcome-badge-id-placeholder"
+        }
+      },
+      "name": "Assign Welcome Badge",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "Create Student Profile", "type": "main", "index": 0 }]]
+    },
+    "Create Student Profile": {
+      "main": [[
+        { "node": "Send Welcome Email", "type": "main", "index": 0 },
+        { "node": "Assign Welcome Badge", "type": "main", "index": 0 }
+      ]]
+    }
+  }
+}

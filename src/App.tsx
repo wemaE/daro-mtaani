@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './lib/supabase';
 import { LANDMARKS, Landmark, getLandmarksBySettlement } from './lib/landmarks';
 import {
@@ -13,6 +13,15 @@ import { darasaStorage } from './utils/indexedDb';
 import { scoutAcademicMatch } from './lib/agents/scout';
 import { guardianFilterAndRoute } from './lib/agents/guardian';
 import { hunterFinalizeMatch } from './lib/agents/hunter';
+import {
+  PillButton,
+  LanguageRow,
+  BadgeCard,
+  SessionCard,
+  AvatarCircle,
+  BottomNav,
+  OnboardingSlide
+} from './components/UI';
 
 // Icons
 import {
@@ -65,6 +74,13 @@ export default function App() {
   // 'landing' | 'login-student' | 'login-parent' | 'login-tutor' | 'login-admin' | 'reset-password' | 'intake' | 'preferences' | 'dashboard' | 'agents' | 'hubs' | 'badges' | 'parent' | 'admin-council' | 'settings'
   const [currentRoute, _setCurrentRoute] = useState<string>(getRouteFromHash());
   const [routeHistory, setRouteHistory] = useState<string[]>([getRouteFromHash()]);
+
+  // Onboarding States
+  const [isOnboarded, setIsOnboarded] = useState<boolean>(() => {
+    return localStorage.getItem('daro_onboarded') === 'true';
+  });
+  const [onboardingStep, setOnboardingStep] = useState<number>(1);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('Swahili');
 
   // Synchronize browser history and hash navigation
   useEffect(() => {
@@ -369,7 +385,6 @@ export default function App() {
   const navigationTabs = useMemo(() => {
     const tabs = [
       { id: 'dashboard', label: 'Dash', icon: LayoutDashboard },
-      { id: 'agents', label: 'Agents', icon: Sparkles },
       { id: 'hubs', label: 'Hubs', icon: MapPin }
     ];
     if (userRole === 'tutor') {
@@ -381,52 +396,122 @@ export default function App() {
     return tabs;
   }, [userRole]);
 
+  if (!isOnboarded) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-[#0D0D0D] rounded-3xl overflow-hidden shadow-2xl relative border border-[#262626] aspect-[9/16] flex flex-col justify-between p-6">
+          {onboardingStep === 1 && (
+            <div className="flex-1 flex flex-col justify-between text-[#0D0D0D] bg-[#E1E8E6] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+              <div className="flex justify-end">
+                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', 'true'); }} className="text-sm font-bold opacity-60">Skip</button>
+              </div>
+              <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+                <div className="w-48 h-48">
+                  {/* Student SVG Illustration */}
+                  <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
+                    <circle cx="100" cy="100" r="80" fill="#D4DDD9" />
+                    <rect x="70" y="90" width="60" height="70" rx="8" fill="#35477B" />
+                    <circle cx="100" cy="70" r="25" fill="#FAD2A6" />
+                    <path d="M75 90 C75 75, 125 75, 125 90" fill="#35477B" />
+                    <rect x="85" y="110" width="30" height="40" fill="#FFFFFF" rx="2" />
+                    <line x1="90" y1="120" x2="110" y2="120" stroke="#35477B" strokeWidth="2" />
+                    <line x1="90" y1="130" x2="110" y2="130" stroke="#35477B" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div className="text-center space-y-3">
+                  <h2 className="text-3xl font-extrabold tracking-tight">Speak with Confidence</h2>
+                  <p className="text-xs opacity-80 leading-relaxed max-w-xs mx-auto">Express your thoughts clearly, trust your voice, and communicate your ideas with clarity, strength, and self-belief.</p>
+                </div>
+              </div>
+              <PillButton onClick={() => setOnboardingStep(2)} variant="primary">Get Started</PillButton>
+            </div>
+          )}
+
+          {onboardingStep === 2 && (
+            <div className="flex-1 flex flex-col justify-between text-[#0D0D0D] bg-[#FAD2A6] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+              <div className="flex justify-between items-center">
+                <button onClick={() => setOnboardingStep(1)} className="text-sm font-bold opacity-60">Back</button>
+                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', 'true'); }} className="text-sm font-bold opacity-60">Skip</button>
+              </div>
+              <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+                <div className="w-48 h-48">
+                  {/* Star Mascot SVG Illustration */}
+                  <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
+                    <path d="M100 20 L120 70 L170 70 L130 100 L150 150 L100 120 L50 150 L70 100 L30 70 L80 70 Z" fill="#F59E0B" />
+                    <circle cx="85" cy="80" r="4" fill="#000" />
+                    <circle cx="115" cy="80" r="4" fill="#000" />
+                    <path d="M90 95 Q100 105 110 95" stroke="#000" strokeWidth="3" strokeLinecap="round" fill="none" />
+                  </svg>
+                </div>
+                <div className="text-center space-y-3">
+                  <h2 className="text-3xl font-extrabold tracking-tight">Lessons Made for You</h2>
+                  <p className="text-xs opacity-80 leading-relaxed max-w-xs mx-auto">Personalized lessons adapt to your goals, level, and schedule to help you learn faster and confidently today.</p>
+                </div>
+              </div>
+              <PillButton onClick={() => setOnboardingStep(3)} variant="primary">Choose a Language</PillButton>
+            </div>
+          )}
+
+          {onboardingStep === 3 && (
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+              <div className="flex items-center">
+                <button onClick={() => setOnboardingStep(2)} className="text-sm font-bold opacity-60">Back</button>
+              </div>
+              <div className="flex-1 flex flex-col justify-center space-y-6 py-4">
+                <div className="space-y-2 text-center">
+                  <h2 className="text-2xl font-extrabold tracking-tight">What Language Do You Want to Learn?</h2>
+                  <p className="text-xs text-gray-400">Select your preferred instruction language.</p>
+                </div>
+                <div className="space-y-2">
+                  <LanguageRow flag="🇰🇪" name="Swahili" selected={selectedLanguage === 'Swahili'} onClick={() => setSelectedLanguage('Swahili')} />
+                  <LanguageRow flag="🇬🇧" name="English" selected={selectedLanguage === 'English'} onClick={() => setSelectedLanguage('English')} />
+                  <LanguageRow flag="🇰🇪" name="Sheng" selected={selectedLanguage === 'Sheng'} onClick={() => setSelectedLanguage('Sheng')} />
+                  <LanguageRow flag="🇫🇷" name="French" selected={selectedLanguage === 'French'} onClick={() => setSelectedLanguage('French')} />
+                </div>
+              </div>
+              <PillButton onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', 'true'); }} variant="primary">Continue</PillButton>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen font-sans transition-all duration-300 ${tc.bg} ${tc.text} ${largeText ? 'text-lg' : 'text-sm'}`}>
+    <div className={`min-h-screen font-sans bg-[#0D0D0D] text-gray-250 transition-all duration-300 ${largeText ? 'text-lg' : 'text-sm'}`}>
       
       {/* 1. TOP BRAND HEADER */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b-2 border-[#35477B] py-3.5 px-4 shadow-sm">
+      <header className="sticky top-0 z-30 bg-[#0D0D0D]/90 backdrop-blur-md border-b border-[#262626] py-3.5 px-4 shadow-sm text-white">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             {routeHistory.length > 1 && (
               <button
                 onClick={navigateBack}
-                className="p-1 rounded hover:bg-slate-100 text-[#35477B] transition-transform active:scale-95"
+                className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white transition-all active:scale-95 cursor-pointer"
                 title="Go Back"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
             <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => { setCurrentRoute('landing'); setUserRole(null); setRouteHistory(['landing']); }} title="Go to Home/Landing">
-              {/* Dark Blue Book Logo SVG based on attached brand concept */}
-              <svg className="w-8 h-6 shrink-0" viewBox="0 0 100 80" fill="none">
-                <path d="M10 10 C30 10, 48 20, 48 70 C48 70, 30 50, 10 50 Z" fill="#35477B" />
-                <path d="M90 10 C70 10, 52 20, 52 70 C52 70, 70 50, 90 50 Z" fill="#35477B" />
+              {/* Coral Red Book Logo SVG based on attached brand concept */}
+              <svg className="w-8 h-6 shrink-0 animate-pulse" viewBox="0 0 100 80" fill="none">
+                <path d="M10 10 C30 10, 48 20, 48 70 C48 70, 30 50, 10 50 Z" fill="#E8462A" />
+                <path d="M90 10 C70 10, 52 20, 52 70 C52 70, 70 50, 90 50 Z" fill="#E8462A" />
               </svg>
               <div>
-                <h1 className="text-lg font-black tracking-tight text-[#35477B] leading-none">Darasa MTAANI</h1>
-                <span className="text-[9px] text-[#35477B]/80 font-bold uppercase tracking-wider">Learning Lives Next Door</span>
+                <h1 className="text-base font-black tracking-tight text-white leading-none">Darasa MTAANI</h1>
+                <span className="text-[9px] text-[#E8462A] font-bold uppercase tracking-wider">Learning Lives Next Door</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Accessibility triggers */}
-            <button
-              onClick={() => {
-                setVoiceAssistant(!voiceAssistant);
-                if (!voiceAssistant) playVoiceAnnounce("Sauti imewashwa.");
-              }}
-              className={`p-1.5 rounded transition-all ${voiceAssistant ? 'bg-[#E7E27C] text-[#35477B]' : 'hover:bg-slate-100 text-[#35477B]'}`}
-              title="Sauti announcements"
-            >
-              <Volume2 className="w-4 h-4" />
-            </button>
 
             {userRole && (
               <button
                 onClick={() => setCurrentRoute('settings')}
-                className="p-1.5 rounded hover:bg-slate-100 text-[#35477B]"
+                className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer"
                 title="Settings"
               >
                 <Settings className="w-4 h-4" />
@@ -436,12 +521,12 @@ export default function App() {
             {/* Cart/Wishlist Off-canvas Toggle */}
             <button
               onClick={() => setShowOffCanvas(true)}
-              className="relative p-1.5 rounded hover:bg-slate-100 text-[#35477B]"
+              className="relative p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer"
               title="Cart & Wishlist"
             >
               <ShoppingCart className="w-4 h-4" />
               {(offlineCart.length + wishlistTutors.length) > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-1 -right-1 bg-[#E8462A] text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                   {offlineCart.length + wishlistTutors.length}
                 </span>
               )}
@@ -451,9 +536,9 @@ export default function App() {
       </header>
 
       {/* 2. OFFLINE STATUS HEADER */}
-      <div className="bg-[#35477B] text-[#E7E27C] text-[10px] text-center py-1 font-bold">
+      <div className="bg-[#171717] text-[#F59E0B] border-b border-[#262626] text-[10px] text-center py-1.5 font-bold">
         {isOffline ? "🚨 Simulation Mode: Offline Grid Active" : "📶 Connected to Nairobi Harambee Grid"}
-        <button onClick={handleOfflineToggle} className="underline ml-2">
+        <button onClick={handleOfflineToggle} className="underline ml-2 text-white hover:text-[#E8462A] cursor-pointer">
           {isOffline ? "Go Online" : "Go Offline"}
         </button>
       </div>
@@ -467,7 +552,7 @@ export default function App() {
             {/* Banner image with Fredoka font styled */}
             <div className="rounded-2xl overflow-hidden border-2 border-[#35477B] bg-white">
               <img
-                src="/community_hub_study.png"
+                src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800"
                 alt="Community Hub Study"
                 className="w-full h-44 object-cover"
               />
@@ -478,51 +563,6 @@ export default function App() {
               <p className="text-xs opacity-90 leading-relaxed max-w-sm mx-auto">
                 Decentralized learning connecting Mathare, Kibera, Mukuru, and Kawangware volunteers with local students.
               </p>
-            </div>
-
-            {/* MOBILE DOWNLOAD & CART INFO */}
-            <div className={`${tc.card} p-4.5 rounded-xl space-y-3`}>
-              <span className="text-xs font-bold uppercase tracking-wider block">📲 Mobile PWA Utility</span>
-              <p className="text-[11px] opacity-80 leading-normal">
-                Install DarasaMtaani locally to bypass high cellular costs. Offline cart allows package downloads to IndexedDB storage.
-              </p>
-              
-              <div className="space-y-2">
-                {curriculumPacks.map(pack => (
-                  <div key={pack.id} className="flex justify-between items-center bg-white/20 p-2 rounded-lg text-xs">
-                    <span>{pack.name}</span>
-                    <button
-                      onClick={() => handleToggleCartItem(pack.id)}
-                      className="px-2 py-0.5 bg-[#35477B] text-white text-[9px] font-bold rounded"
-                    >
-                      {offlineCart.includes(pack.id) ? "Remove" : "Add to Cart"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* THREE PILLARS CARD GRID */}
-            <div className="space-y-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider block">Our Core Pillars</span>
-              
-              <div className="space-y-2">
-                <div className={`${tc.card} p-3 rounded-lg flex items-start gap-2.5`}>
-                  <div className="w-5 h-5 rounded-full bg-[#35477B] text-[#E7E27C] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</div>
-                  <div>
-                    <span className="font-bold text-xs block">Human Infrastructure</span>
-                    <p className="text-[10px] opacity-80 mt-0.5">Vetted university students and elder-verified local mentors.</p>
-                  </div>
-                </div>
-
-                <div className={`${tc.card} p-3 rounded-lg flex items-start gap-2.5`}>
-                  <div className="w-5 h-5 rounded-full bg-[#35477B] text-[#E7E27C] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</div>
-                  <div>
-                    <span className="font-bold text-xs block">Ubuntu Priority Score</span>
-                    <p className="text-[10px] opacity-80 mt-0.5">Prioritizes students facing severe time poverty or device deficits.</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* ABOUT DARASAMTAANI SECTION */}
@@ -984,11 +1024,14 @@ export default function App() {
         {/* ROUTE: DASHBOARD */}
         {currentRoute === 'dashboard' && (
           <div className="space-y-4 animate-fade-in">
-            <div className={`${tc.card} p-5 rounded-2xl space-y-2`}>
-              <h3 className="text-lg font-bold">Habari, {profileName}</h3>
-              <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-[#35477B] text-[#E7E27C] rounded inline-block">
-                Role: {userRole}
-              </span>
+            <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-2 flex items-center gap-4">
+              <AvatarCircle name={profileName} size="lg" />
+              <div>
+                <h3 className="text-lg font-bold text-white">Habari, {profileName}</h3>
+                <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 bg-[#E8462A] text-white rounded-full inline-block">
+                  Role: {userRole}
+                </span>
+              </div>
             </div>
 
             {userRole === 'tutor' ? (
@@ -996,48 +1039,50 @@ export default function App() {
               <div className="space-y-4">
                 {/* DISPATCH STUDENT QUEUE */}
                 <div className="space-y-2">
-                  <span className="block text-xs font-bold uppercase tracking-wider">Student Priority Requests Queue</span>
+                  <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Student Priority Requests Queue</span>
                   <div className="space-y-2">
                     {requests
                       .filter(r => r.status === 'pending')
                       .sort((a, b) => b.ubuntuScore - a.ubuntuScore)
                       .map(req => (
-                        <div key={req.id} className={`${tc.card} p-3 rounded-lg text-xs space-y-2 text-slate-800 bg-[#FDFCE5]`}>
+                        <div key={req.id} className="p-4 rounded-2xl bg-[#171717] border border-[#262626] space-y-3 text-left">
                           <div className="flex justify-between items-center font-bold">
-                            <span>{req.studentName} (UPS {req.ubuntuScore})</span>
-                            <span className="text-[10px] text-coral bg-rose-50 px-1 rounded">Pending</span>
+                            <span className="text-sm text-white font-bold">{req.studentName}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800">UPS {req.ubuntuScore}</span>
                           </div>
-                          <p className="opacity-80">"{req.description}"</p>
-                          <button
+                          <p className="text-xs text-gray-400">"{req.description}"</p>
+                          <PillButton
                             onClick={() => setSelectedSessionToApprove(req.id)}
-                            className="px-2.5 py-1 bg-[#35477B] text-white rounded text-[10px] font-bold"
+                            variant="primary"
+                            showArrow={false}
+                            className="py-2.5 text-xs rounded-xl"
                           >
                             Accept with Elder PIN
-                          </button>
+                          </PillButton>
                         </div>
                       ))}
                   </div>
                 </div>
 
                 {/* TUTOR BADGES READY FOR DOWNLOAD/SHARE */}
-                <div className="bg-white/20 p-4 rounded-xl space-y-3">
-                  <span className="block text-xs font-bold uppercase tracking-wider">My Volunteer Achievements</span>
+                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-3">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">My Volunteer Achievements</span>
                   <div className="flex justify-between items-center text-xs">
-                    <span>🏆 Kibera Pioneer Badge</span>
-                    <div className="flex gap-1">
-                      <button onClick={() => alert("Downloading PDF Certificate...")} className="px-2 py-0.5 bg-[#35477B] text-white rounded text-[9px]">PDF</button>
-                      <button onClick={() => alert("Pushed to LinkedIn API.")} className="px-2 py-0.5 bg-sky-600 text-white rounded text-[9px]">Share</button>
+                    <span className="text-white font-medium">🏆 Kibera Pioneer Badge</span>
+                    <div className="flex gap-2">
+                      <button onClick={() => alert("Downloading PDF Certificate...")} className="px-3 py-1 bg-[#171717] text-white rounded-full border border-[#262626] hover:bg-[#262626] text-[10px] font-bold cursor-pointer">PDF</button>
+                      <button onClick={() => alert("Pushed to LinkedIn API.")} className="px-3 py-1 bg-[#E8462A] text-white rounded-full hover:bg-[#D0361C] text-[10px] font-bold cursor-pointer">Share</button>
                     </div>
                   </div>
                 </div>
 
                 {/* SUGGEST GUIDELINES TO PARENTS */}
-                <div className="bg-white/20 p-4 rounded-xl space-y-2">
-                  <span className="block text-xs font-bold uppercase tracking-wider">Suggest Guidelines to Parents</span>
+                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-2">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Suggest Guidelines to Parents</span>
                   <input
                     type="text"
                     placeholder="e.g. Focus on grade 4 math sequences..."
-                    className="w-full p-2 rounded text-xs bg-white text-slate-800 border"
+                    className="w-full p-3 rounded-xl bg-[#0D0D0D] text-white border border-[#262626] text-xs focus:outline-none focus:border-[#E8462A]"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         alert("Guidelines shared with parent feed!");
@@ -1045,25 +1090,27 @@ export default function App() {
                       }
                     }}
                   />
-                  <p className="text-[9px] opacity-75">Press Enter to dispatch guidelines.</p>
+                  <p className="text-[9px] text-gray-500">Press Enter to dispatch guidelines.</p>
                 </div>
 
                 {/* ELDER PIN VERIFICATION */}
                 {selectedSessionToApprove && (
-                  <div className="bg-white p-4 rounded-xl space-y-2 text-slate-850">
-                    <span className="font-bold text-xs block">Elders Pin Verification (1234):</span>
+                  <div className="bg-[#171717] border border-[#E8462A] p-5 rounded-2xl space-y-3">
+                    <span className="font-bold text-xs block text-white">Elders Pin Verification (1234):</span>
                     <input
                       type="password"
                       value={elderPinInput}
                       onChange={(e) => setElderPinInput(e.target.value)}
-                      className="w-full p-1.5 border rounded text-xs text-center bg-white text-slate-800"
+                      className="w-full p-2.5 border border-[#262626] rounded-xl text-xs text-center bg-[#0D0D0D] text-white font-mono tracking-widest focus:outline-none focus:border-[#E8462A]"
                     />
-                    <button
+                    <PillButton
                       onClick={() => handleElderPinApproval(selectedSessionToApprove)}
-                      className="w-full bg-[#35477B] text-white py-1 rounded text-[10px]"
+                      variant="primary"
+                      showArrow={false}
+                      className="py-2.5 text-xs rounded-xl"
                     >
                       Confirm Session
-                    </button>
+                    </PillButton>
                   </div>
                 )}
               </div>
@@ -1071,28 +1118,29 @@ export default function App() {
               // PARENT DASHBOARD
               <div className="space-y-4">
                 {/* SCHEDULE TUTOR SESSION */}
-                <div className="bg-white/20 p-4 rounded-xl space-y-2.5">
-                  <span className="block text-xs font-bold uppercase tracking-wider">Schedule Tutor Session</span>
-                  <select className="w-full p-1.5 rounded text-xs bg-white text-slate-800 border">
+                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-3">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Schedule Tutor Session</span>
+                  <select className="w-full p-3 rounded-xl bg-[#0D0D0D] text-white border border-[#262626] text-xs focus:outline-none focus:border-[#E8462A]">
                     {MOCK_TUTORS.map(t => (
-                      <option key={t.id} value={t.id}>{t.name} ({t.subjects[0]})</option>
+                      <option key={t.id} value={t.id} className="bg-[#171717]">{t.name} ({t.subjects[0]})</option>
                     ))}
                   </select>
-                  <button
+                  <PillButton
                     onClick={() => alert("Session booked! Awaiting Elder Approval PIN.")}
-                    className="w-full bg-[#35477B] text-white py-1 rounded text-xs font-bold"
+                    variant="primary"
+                    showArrow={true}
                   >
                     Confirm Date & Book
-                  </button>
+                  </PillButton>
                 </div>
 
                 {/* APPROVE ASSIGNMENTS */}
-                <div className="bg-white/20 p-4 rounded-xl space-y-2">
-                  <span className="block text-xs font-bold uppercase tracking-wider">Approve Homework Assignments</span>
+                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-3">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Approve Homework Assignments</span>
                   <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between items-center bg-white/10 p-2 rounded">
-                      <span>Math Homework (Ephraim)</span>
-                      <button onClick={(e) => { alert("Approved Math homework."); e.currentTarget.disabled = true; e.currentTarget.innerText = "Approved ✓"; }} className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px]">Approve</button>
+                    <div className="flex justify-between items-center bg-[#0D0D0D] p-3 rounded-xl border border-[#262626]">
+                      <span className="text-white font-medium">Math Homework (Ephraim)</span>
+                      <button onClick={(e) => { alert("Approved Math homework."); e.currentTarget.disabled = true; e.currentTarget.innerText = "Approved ✓"; }} className="px-3 py-1 bg-emerald-600 text-white rounded-full text-[10px] font-bold cursor-pointer hover:bg-emerald-500">Approve</button>
                     </div>
                   </div>
                 </div>
@@ -1101,34 +1149,34 @@ export default function App() {
               // STUDENT DASHBOARD
               <div className="space-y-4">
                 {/* SEARCH HUBS BY RESOURCES */}
-                <div className="bg-white/20 p-4 rounded-xl space-y-3">
-                  <span className="block text-xs font-bold uppercase tracking-wider">Search Nearest Hub by Resources</span>
+                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-4">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Search Nearest Hub by Resources</span>
                   <select
                     value={activeAssetFilter}
                     onChange={(e) => setActiveAssetFilter(e.target.value)}
-                    className="w-full p-2 border rounded text-xs bg-white text-slate-800"
+                    className="w-full p-3 border border-[#262626] rounded-xl text-xs bg-[#0D0D0D] text-white focus:outline-none focus:border-[#E8462A]"
                   >
-                    <option value="All">All Resources</option>
-                    <option value="WiFi">WiFi Connection</option>
-                    <option value="Tablets">Study Tablets</option>
-                    <option value="Solar">Solar Power</option>
-                    <option value="Girl-safe">Girl-Safe Space</option>
+                    <option value="All" className="bg-[#171717]">All Resources</option>
+                    <option value="WiFi" className="bg-[#171717]">WiFi Connection</option>
+                    <option value="Tablets" className="bg-[#171717]">Study Tablets</option>
+                    <option value="Solar" className="bg-[#171717]">Solar Power</option>
+                    <option value="Girl-safe" className="bg-[#171717]">Girl-Safe Space</option>
                   </select>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {filteredHubs.map(hub => (
-                      <div key={hub.id} className="flex justify-between items-center bg-white/25 p-2 rounded text-xs">
-                        <span>{hub.name} ({hub.settlement})</span>
-                        <div className="flex gap-1">
+                      <div key={hub.id} className="flex justify-between items-center bg-[#0D0D0D] p-3 rounded-xl border border-[#262626] text-xs">
+                        <span className="text-white font-medium">{hub.name} ({hub.settlement})</span>
+                        <div className="flex gap-2">
                           <button
                             onClick={() => { handleToggleWishlist(hub.id); alert(`${hub.name} added to Wishlist!`); }}
-                            className="p-1 bg-white/20 rounded hover:bg-white/40"
+                            className="p-2 bg-[#171717] rounded-full border border-[#262626] hover:bg-[#262626] cursor-pointer"
                           >
-                            <Heart className="w-3.5 h-3.5 text-coral" />
+                            <Heart className="w-3.5 h-3.5 text-[#E8462A]" />
                           </button>
                           <button
                             onClick={() => { handleToggleCartItem(hub.id); alert(`${hub.name} added to Cart!`); }}
-                            className="p-1 bg-[#35477B] text-white rounded"
+                            className="p-2 bg-[#E8462A] text-white rounded-full hover:bg-[#D0361C] cursor-pointer"
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
                           </button>
@@ -1139,40 +1187,64 @@ export default function App() {
                 </div>
 
                 {/* SCHEDULE SESSION WITH NEXT TUTOR */}
-                <div className="bg-white/20 p-4 rounded-xl space-y-2">
-                  <span className="block text-xs font-bold uppercase tracking-wider">Tutoring Handshake</span>
-                  <p className="text-[10px] opacity-85">Match instantly with local mentor {MOCK_TUTORS[0].name} ({MOCK_TUTORS[0].subjects[0]}).</p>
-                  <button
+                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-3">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Tutoring Handshake</span>
+                  <p className="text-xs text-gray-400">Match instantly with local mentor {MOCK_TUTORS[0].name} ({MOCK_TUTORS[0].subjects[0]}).</p>
+                  <PillButton
                     onClick={() => alert(`Session scheduled with ${MOCK_TUTORS[0].name}! Requires elder PIN to verify.`)}
-                    className="w-full bg-[#35477B] text-white py-1.5 rounded text-xs font-bold"
+                    variant="primary"
+                    showArrow={true}
                   >
                     Schedule Tutor Session
-                  </button>
+                  </PillButton>
                 </div>
               </div>
             )}
+            
+            {/* DASHBOARD BOTTOM ACTIONS: BACK TO HOME & LOG OUT */}
+            <div className="flex gap-3 pt-4 border-t border-[#262626]">
+              <button
+                onClick={() => {
+                  setCurrentRoute('landing');
+                  setRouteHistory(['landing']);
+                }}
+                className="flex-1 py-3.5 bg-transparent text-gray-300 border border-[#262626] text-xs font-bold rounded-full active:scale-95 transition-transform hover:bg-[#171717] cursor-pointer"
+              >
+                🏠 Safiri Nyumbani (Home)
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentRoute('landing');
+                  setUserRole(null);
+                  setRouteHistory(['landing']);
+                }}
+                className="flex-1 py-3.5 bg-rose-950 text-rose-400 border border-rose-900 text-xs font-bold rounded-full active:scale-95 transition-transform hover:bg-rose-900 cursor-pointer"
+              >
+                🚪 Toka (Log Out)
+              </button>
+            </div>
           </div>
         )}
 
         {/* ROUTE: AGENTS */}
         {currentRoute === 'agents' && (
           <div className="space-y-4 animate-fade-in">
-            <h3 className="text-base font-bold">Matching Verification Agents</h3>
+            <h3 className="text-base font-bold text-white">Matching Verification Agents</h3>
             
             <div className="space-y-2">
-              <div className={`${tc.card} p-3.5 rounded-xl`}>
-                <span className="font-bold block text-xs">Scout (Matching Engine)</span>
-                <p className="text-[10px] opacity-80 mt-0.5">Finds curriculum specializations, caching requests for quick offline retrieval.</p>
+              <div className="bg-[#171717] border border-[#262626] p-4.5 rounded-2xl">
+                <span className="font-bold block text-sm text-white">Scout (Matching Engine)</span>
+                <p className="text-xs text-gray-400 mt-1">Finds curriculum specializations, caching requests for quick offline retrieval.</p>
               </div>
 
-              <div className={`${tc.card} p-3.5 rounded-xl`}>
-                <span className="font-bold block text-xs">Guardian (Capacity Buffer)</span>
-                <p className="text-[10px] opacity-80 mt-0.5">Filters out study centers with capacity status above 80% limit constraint.</p>
+              <div className="bg-[#171717] border border-[#262626] p-4.5 rounded-2xl">
+                <span className="font-bold block text-sm text-white">Guardian (Capacity Buffer)</span>
+                <p className="text-xs text-gray-400 mt-1">Filters out study centers with capacity status above 80% limit constraint.</p>
               </div>
 
-              <div className={`${tc.card} p-3.5 rounded-xl`}>
-                <span className="font-bold block text-xs">Hunter (Proximity Gate)</span>
-                <p className="text-[10px] opacity-80 mt-0.5">Enforces 1km limits and restricts confirmed tags without Elder PIN codes.</p>
+              <div className="bg-[#171717] border border-[#262626] p-4.5 rounded-2xl">
+                <span className="font-bold block text-sm text-white">Hunter (Proximity Gate)</span>
+                <p className="text-xs text-gray-400 mt-1">Enforces 1km limits and restricts confirmed tags without Elder PIN codes.</p>
               </div>
             </div>
           </div>
@@ -1181,17 +1253,24 @@ export default function App() {
         {/* ROUTE: HUBS */}
         {currentRoute === 'hubs' && (
           <div className="space-y-4 animate-fade-in">
-            <h3 className="text-base font-bold">Harambee Study Centers</h3>
+            <h3 className="text-base font-bold text-white">Harambee Study Centers</h3>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               {MOCK_HUBS.map(hub => (
-                <div key={hub.id} className={`${tc.card} p-3.5 rounded-xl`}>
+                <div key={hub.id} className="bg-[#171717] border border-[#262626] p-5 rounded-2xl">
                   <div className="flex justify-between items-start">
-                    <span className="font-bold block text-xs">{hub.name}</span>
-                    <span className="text-[9px] font-mono">{hub.capacityStatus}% Full</span>
+                    <span className="font-bold block text-sm text-white">{hub.name}</span>
+                    <span className="text-xs font-bold text-[#E8462A]">{hub.capacityStatus}% Full</span>
                   </div>
-                  <div className="w-full bg-slate-255/30 h-1.5 rounded-full overflow-hidden mt-1.5">
-                    <div className="h-full bg-[#35477B]" style={{ width: `${hub.capacityStatus}%` }} />
+                  <div className="w-full bg-[#0D0D0D] h-2 rounded-full overflow-hidden mt-3 border border-[#262626]">
+                    <div className="h-full bg-gradient-to-r from-[#E8462A] to-[#F59E0B]" style={{ width: `${hub.capacityStatus}%` }} />
+                  </div>
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    {hub.availableAssets.map(asset => (
+                      <span key={asset} className="text-[10px] font-bold px-2 py-0.5 bg-[#0D0D0D] text-gray-400 rounded-full border border-[#262626]">
+                        {asset}
+                      </span>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -1202,14 +1281,20 @@ export default function App() {
         {/* ROUTE: BADGES */}
         {currentRoute === 'badges' && userRole === 'tutor' && (
           <div className="space-y-4 animate-fade-in">
-            <h3 className="text-base font-bold">Tutor Badges Portfolio</h3>
-            <div className="grid grid-cols-2 gap-2.5">
-              {['Kibera Pioneer', 'Mathare Guardian'].map(badgeName => (
-                <div key={badgeName} className={`${tc.card} p-4 rounded-xl text-center`}>
-                  <span className="text-2xl">🏆</span>
-                  <span className="font-bold text-xs block mt-1">{badgeName}</span>
-                </div>
-              ))}
+            <h3 className="text-base font-bold text-white">Tutor Badges Portfolio</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <BadgeCard
+                name="Kibera Pioneer"
+                description="Awarded for matching with 5 or more students in the Kibera settlement grid."
+                earned={true}
+                earnedAt="2026-06-22T08:00:00Z"
+              />
+              <BadgeCard
+                name="Mathare Guardian"
+                description="Help resources matched effectively within Mathare sector."
+                earned={false}
+                criteria="Complete 10 volunteer hours"
+              />
             </div>
           </div>
         )}
@@ -1217,22 +1302,28 @@ export default function App() {
         {/* ROUTE: PARENT */}
         {currentRoute === 'parent' && userRole === 'parent' && (
           <div className="space-y-4 animate-fade-in">
-            <h3 className="text-base font-bold">CBC Glossary Translator</h3>
+            <h3 className="text-base font-bold text-white">CBC Glossary Translator</h3>
             
             <div className="space-y-3">
               <select
                 value={selectedWord}
                 onChange={(e) => setSelectedWord(e.target.value)}
-                className="w-full px-2.5 py-1.5 border rounded text-xs bg-white text-slate-800"
+                className="w-full p-3 rounded-xl bg-[#171717] text-white border border-[#262626] text-xs focus:outline-none focus:border-[#E8462A]"
               >
                 {CBC_DICTIONARY.map(d => (
-                  <option key={d.term} value={d.term}>{d.term}</option>
+                  <option key={d.term} value={d.term} className="bg-[#171717]">{d.term}</option>
                 ))}
               </select>
 
-              <div className={`${tc.card} p-4 rounded-xl space-y-2`}>
-                <span className="font-bold text-xs block">{activeTermObject.swahiliTranslation}</span>
-                <p className="text-[11px] opacity-90">{activeTermObject.definitionSw}</p>
+              <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-2">
+                <span className="font-bold text-sm text-[#E8462A] block">{activeTermObject.swahiliTranslation}</span>
+                <p className="text-xs text-gray-300 leading-relaxed">{activeTermObject.definitionSw}</p>
+                {activeTermObject.definitionSheng && (
+                  <div className="pt-2 border-t border-[#262626] mt-2">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase block">Sheng Translation</span>
+                    <p className="text-xs text-gray-400 mt-0.5">{activeTermObject.definitionSheng}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1240,41 +1331,43 @@ export default function App() {
 
         {/* ROUTE: ELDERS COUNCIL / ADMIN DASHBOARD */}
         {currentRoute === 'admin-council' && (
-          <div className="space-y-4 animate-fade-in text-slate-800 bg-white p-5 rounded-2xl border-2 border-[#35477B]">
-            <h3 className="text-base font-bold text-[#35477B]">Elders Council Admin Board</h3>
-            <p className="text-[11px] text-slate-500">Monitor constraints, view capacity overloads, and override spatial matching routes.</p>
+          <div className="space-y-4 animate-fade-in bg-[#171717] border border-[#262626] p-5 rounded-2xl text-gray-250">
+            <h3 className="text-base font-bold text-white">Elders Council Admin Board</h3>
+            <p className="text-xs text-gray-400">Monitor constraints, view capacity overloads, and override spatial matching routes.</p>
             
             {/* Active capacity status monitors */}
             <div className="space-y-2">
-              <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Hub capacity warning list</span>
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs space-y-1.5">
-                <div className="flex justify-between font-bold text-rose-800">
+              <span className="block text-xs font-bold uppercase tracking-wider text-gray-500">Hub capacity warning list</span>
+              <div className="p-4 bg-rose-950/40 border border-rose-900 rounded-xl text-xs space-y-2">
+                <div className="flex justify-between font-bold text-rose-400">
                   <span>SHOFCO Kibera Hub</span>
                   <span>95% Overload (Blocked)</span>
                 </div>
-                <p className="text-[10px] text-rose-700">Constraint Trigger: Guardian agent bypassed matching requests due to capacity status &gt;= 80%.</p>
+                <p className="text-[11px] text-rose-500/80 leading-relaxed">Constraint Trigger: Guardian agent bypassed matching requests due to capacity status &gt;= 80%.</p>
                 
-                <button
+                <PillButton
                   onClick={() => {
                     alert("Elders override active: Rerouting pending Kibera queue to next available hub (Ruben Center, 42% capacity).");
                   }}
-                  className="w-full bg-[#35477B] text-white py-1 rounded text-[10px] font-bold mt-1"
+                  variant="primary"
+                  showArrow={false}
+                  className="py-2.5 text-xs rounded-xl mt-1"
                 >
                   Suggest Next Available Center (Reroute)
-                </button>
+                </PillButton>
               </div>
             </div>
 
-            <div className="bg-slate-55 p-3 rounded-lg border text-xs">
-              <span className="font-bold block mb-1">Queue & Constraint Logs</span>
-              <ul className="list-disc pl-4 space-y-1 text-[10px] text-slate-500">
+            <div className="bg-[#0D0D0D] p-4 rounded-xl border border-[#262626] text-xs">
+              <span className="font-bold block text-white mb-2">Queue & Constraint Logs</span>
+              <ul className="list-disc pl-4 space-y-1.5 text-xs text-gray-400">
                 <li>Mathare Stage 10 Hub: 72% capacity (Normal status).</li>
                 <li>Tutor proximity verification: All active handshakes within 1km limit.</li>
                 <li>Data Charter Retention: 2 households marked for deletion after 180 days.</li>
               </ul>
             </div>
             
-            <button onClick={handleLogout} className="text-xs underline block mx-auto mt-2">Log Out</button>
+            <button onClick={handleLogout} className="text-xs underline block mx-auto mt-2 text-gray-500 hover:text-white cursor-pointer">Log Out</button>
           </div>
         )}
 
@@ -1282,32 +1375,11 @@ export default function App() {
 
       {/* 4. MASTER MOBILE BOTTOM NAVIGATION */}
       {userRole && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#35477B] py-2.5 px-4 shadow-lg z-20">
-          <div className="max-w-md mx-auto flex justify-between items-center">
-            {navigationTabs.map(tab => {
-              const Icon = tab.icon;
-              const isSelected = currentRoute === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setCurrentRoute(tab.id)}
-                  className="flex flex-col items-center gap-0.5 flex-1"
-                >
-                  <div className={`p-1.5 rounded-full transition-all ${
-                    isSelected ? 'bg-[#35477B] text-white' : 'text-slate-400 hover:text-slate-600'
-                  }`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <span className={`text-[8px] font-bold ${
-                    isSelected ? 'text-[#35477B] font-extrabold' : 'text-slate-400'
-                  }`}>
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </footer>
+        <BottomNav
+          currentTab={currentRoute}
+          onChange={setCurrentRoute}
+          tabs={navigationTabs}
+        />
       )}
 
       {/* 5. OFF-CANVAS SLIDE-IN FOR WISHLIST & CART ITEMS */}

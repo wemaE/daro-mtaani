@@ -1,0 +1,29 @@
+/* src/styles/tokens.css */
+:root {
+  --color-dark-bg: #0D0D0D;
+  --color-dark-surface: #171717;
+  --color-dark-border: #262626;
+  
+  --color-light-bg: #FAFAF7;
+  --color-light-surface: #FFFFFF;
+  --color-light-border: #E5E5E0;
+  
+  --color-coral-red: #E8462A;
+  --color-coral-hover: #D0361C;
+  --color-amber-highlight: #F59E0B;
+}
+
+/* Base theme configuration classes */
+.dark-theme {
+  background-color: var(--color-dark-bg);
+  color: #F3F4F6;
+}
+
+.light-theme {
+  background-color: var(--color-light-bg);
+  color: #111827;
+}
+
+.coral-gradient {
+  background: linear-gradient(135deg, #E8462A 0%, #F55F44 100%);
+}

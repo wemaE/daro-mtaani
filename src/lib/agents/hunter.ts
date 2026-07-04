@@ -139,3 +139,6 @@ export async function hunterMatch(
     }
   };
 }
+
+export { hunterMatch as hunterFinalizeMatch };
+

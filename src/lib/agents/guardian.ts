@@ -99,3 +99,20 @@ export async function guardianResortQueue(settlement: string): Promise<string[]>
 
   return households.map(h => h.id);
 }
+
+export interface DispatchItem {
+  id: string;
+  studentName: string;
+  upsScore: number;
+  landmarkCode: string;
+}
+
+export function guardianFilterAndRoute(hubs: any[], queue: DispatchItem[]) {
+  const routedHubs = hubs.filter(hub => hub.capacityStatus < 80);
+  const sortedQueue = [...queue].sort((a, b) => b.upsScore - a.upsScore);
+  return {
+    routedHubs,
+    queue: sortedQueue
+  };
+}
+

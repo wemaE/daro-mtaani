@@ -1,0 +1,32 @@
+{
+  "name": "WF-09-badge-award-notification",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "badge-award-webhook",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "badges@darasamtaani.org",
+        "toEmail": "={{$json.body.userEmail}}",
+        "subject": "Hongera! Umepata Badge Jipya!",
+        "html": "<h3>Hongera sana!</h3><p>Congratulations, you unlocked the badge: <strong>{{$json.body.badgeName}}</strong>!</p>"
+      },
+      "name": "Send Congratulations Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [300, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "Send Congratulations Email", "type": "main", "index": 0 }]]
+    }
+  }
+}

@@ -5,6 +5,11 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  const secret = req.headers['x-n8n-shared-secret'];
+  if (process.env.N8N_SHARED_SECRET && secret !== process.env.N8N_SHARED_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const {
     time_poverty_score,
     material_deficit_score,

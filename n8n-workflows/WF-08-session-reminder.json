@@ -1,0 +1,66 @@
+{
+  "name": "WF-08-session-reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "value": [{ "mode": "everyHour" }]
+        }
+      },
+      "name": "Hourly Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "sessions",
+        "filters": {
+          "status": "confirmed"
+        }
+      },
+      "name": "Get Sessions",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "dateTime": [
+            {
+              "value1": "={{$json[\"scheduled_at\"]}}",
+              "value2": "={{$today.plus({days: 1})}}"
+            }
+          ]
+        }
+      },
+      "name": "Filter 24h reminders",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Habari, una session ya DarasaMtaani kesho saa {{$json[\"scheduled_at\"]}}.",
+        "recipients": "={{$json[\"tutor_phone\"]}}"
+      },
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.africasTalking",
+      "typeVersion": 1,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Hourly Cron": {
+      "main": [[{ "node": "Get Sessions", "type": "main", "index": 0 }]]
+    },
+    "Get Sessions": {
+      "main": [[{ "node": "Filter 24h reminders", "type": "main", "index": 0 }]]
+    },
+    "Filter 24h reminders": {
+      "main": [[{ "node": "Send SMS", "type": "main", "index": 0 }]]
+    }
+  }
+}

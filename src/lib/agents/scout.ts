@@ -132,3 +132,6 @@ export async function scoutMatch(householdId: string, cbcStrand: string): Promis
 
   return result;
 }
+
+export { scoutMatch as scoutAcademicMatch };
+
