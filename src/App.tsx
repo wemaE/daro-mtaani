@@ -76,11 +76,13 @@ export default function App() {
   const [routeHistory, setRouteHistory] = useState<string[]>([getRouteFromHash()]);
 
   // Onboarding States
+  const ONBOARDING_VERSION = 'v3';
   const [isOnboarded, setIsOnboarded] = useState<boolean>(() => {
-    return localStorage.getItem('daro_onboarded') === 'true';
+    return localStorage.getItem('daro_onboarded') === ONBOARDING_VERSION;
   });
   const [onboardingStep, setOnboardingStep] = useState<number>(1);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('Swahili');
+  const [onboardingName, setOnboardingName] = useState('');
 
   // Synchronize browser history and hash navigation
   useEffect(() => {
@@ -133,7 +135,9 @@ export default function App() {
   // Auth state
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'tutor' | 'admin' | null>(null);
   const [userPhone, setUserPhone] = useState<string>('');
-  const [profileName, setProfileName] = useState<string>('Mwanafunzi Mkuu');
+  const [profileName, setProfileName] = useState<string>(() => {
+    return localStorage.getItem('daro_user_name') || 'Mwanafunzi';
+  });
   const [otpSent, setOtpSent] = useState<boolean>(false);
   const [otpCode, setOtpCode] = useState<string>('');
   const [adminEmail, setAdminEmail] = useState<string>('');
@@ -397,81 +401,165 @@ export default function App() {
   }, [userRole]);
 
   if (!isOnboarded) {
+    const completeOnboarding = () => {
+      const finalName = onboardingName.trim() || 'Mwanafunzi';
+      setProfileName(finalName);
+      localStorage.setItem('daro_user_name', finalName);
+      localStorage.setItem('daro_onboarded', ONBOARDING_VERSION);
+      setIsOnboarded(true);
+    };
+
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-[#0D0D0D] rounded-3xl overflow-hidden shadow-2xl relative border border-[#262626] aspect-[9/16] flex flex-col justify-between p-6">
+          {/* SCREEN 1 */}
           {onboardingStep === 1 && (
-            <div className="flex-1 flex flex-col justify-between text-[#0D0D0D] bg-[#E1E8E6] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
               <div className="flex justify-end">
-                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', 'true'); }} className="text-sm font-bold opacity-60">Skip</button>
+                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', ONBOARDING_VERSION); }} className="text-sm font-bold text-gray-500">Skip</button>
               </div>
               <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-                <div className="w-48 h-48">
-                  {/* Student SVG Illustration */}
-                  <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
-                    <circle cx="100" cy="100" r="80" fill="#D4DDD9" />
-                    <rect x="70" y="90" width="60" height="70" rx="8" fill="#35477B" />
-                    <circle cx="100" cy="70" r="25" fill="#FAD2A6" />
-                    <path d="M75 90 C75 75, 125 75, 125 90" fill="#35477B" />
-                    <rect x="85" y="110" width="30" height="40" fill="#FFFFFF" rx="2" />
-                    <line x1="90" y1="120" x2="110" y2="120" stroke="#35477B" strokeWidth="2" />
-                    <line x1="90" y1="130" x2="110" y2="130" stroke="#35477B" strokeWidth="2" />
-                  </svg>
+                {/* Decorative photo strip (STEP 2h) */}
+                <div className="flex gap-1 justify-center mt-4">
+                  {[
+                    "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=100&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=100&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1497486751825-1233686d5d80?q=80&w=100&auto=format&fit=crop",
+                  ].map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt="African child learning"
+                      className="w-12 h-12 rounded-xl object-cover border border-[#262626]"
+                      onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop'; }}
+                    />
+                  ))}
                 </div>
-                <div className="text-center space-y-3">
-                  <h2 className="text-3xl font-extrabold tracking-tight">Speak with Confidence</h2>
-                  <p className="text-xs opacity-80 leading-relaxed max-w-xs mx-auto">Express your thoughts clearly, trust your voice, and communicate your ideas with clarity, strength, and self-belief.</p>
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-extrabold tracking-tight text-white">Learning Lives Next Door</h2>
+                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">Connecting Nairobi's brightest young minds with vetted community tutors — right in your mtaa.</p>
                 </div>
               </div>
-              <PillButton onClick={() => setOnboardingStep(2)} variant="primary">Get Started</PillButton>
+              <button
+                onClick={() => setOnboardingStep(2)}
+                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
+              >
+                Get Started →
+              </button>
             </div>
           )}
 
+          {/* SCREEN 2 */}
           {onboardingStep === 2 && (
-            <div className="flex-1 flex flex-col justify-between text-[#0D0D0D] bg-[#FAD2A6] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
               <div className="flex justify-between items-center">
-                <button onClick={() => setOnboardingStep(1)} className="text-sm font-bold opacity-60">Back</button>
-                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', 'true'); }} className="text-sm font-bold opacity-60">Skip</button>
+                <button onClick={() => setOnboardingStep(1)} className="text-sm font-bold text-gray-400">Back</button>
+                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', ONBOARDING_VERSION); }} className="text-sm font-bold text-gray-500">Skip</button>
               </div>
               <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-                <div className="w-48 h-48">
-                  {/* Star Mascot SVG Illustration */}
-                  <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
-                    <path d="M100 20 L120 70 L170 70 L130 100 L150 150 L100 120 L50 150 L70 100 L30 70 L80 70 Z" fill="#F59E0B" />
-                    <circle cx="85" cy="80" r="4" fill="#000" />
-                    <circle cx="115" cy="80" r="4" fill="#000" />
-                    <path d="M90 95 Q100 105 110 95" stroke="#000" strokeWidth="3" strokeLinecap="round" fill="none" />
-                  </svg>
-                </div>
-                <div className="text-center space-y-3">
-                  <h2 className="text-3xl font-extrabold tracking-tight">Lessons Made for You</h2>
-                  <p className="text-xs opacity-80 leading-relaxed max-w-xs mx-auto">Personalized lessons adapt to your goals, level, and schedule to help you learn faster and confidently today.</p>
+                <span className="text-3xl">★ ★ ★</span>
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-extrabold tracking-tight text-white">Lessons Made for You</h2>
+                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">Personalized sessions with vetted tutors adapt to each child's level, subject, and settlement.</p>
                 </div>
               </div>
-              <PillButton onClick={() => setOnboardingStep(3)} variant="primary">Choose a Language</PillButton>
+              <button
+                onClick={() => setOnboardingStep(3)}
+                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
+              >
+                Choose a Language →
+              </button>
             </div>
           )}
 
+          {/* SCREEN 3 — LANGUAGE */}
           {onboardingStep === 3 && (
             <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
               <div className="flex items-center">
-                <button onClick={() => setOnboardingStep(2)} className="text-sm font-bold opacity-60">Back</button>
+                <button onClick={() => setOnboardingStep(2)} className="text-sm font-bold text-gray-400">Back</button>
               </div>
               <div className="flex-1 flex flex-col justify-center space-y-6 py-4">
                 <div className="space-y-2 text-center">
-                  <h2 className="text-2xl font-extrabold tracking-tight">What Language Do You Want to Learn?</h2>
+                  <h2 className="text-2xl font-extrabold tracking-tight text-white">What Language Do You Want to Learn?</h2>
                   <p className="text-xs text-gray-400">Select your preferred instruction language.</p>
                 </div>
                 <div className="space-y-2">
-                  <LanguageRow flag="🇰🇪" name="Swahili" selected={selectedLanguage === 'Swahili'} onClick={() => setSelectedLanguage('Swahili')} />
-                  <LanguageRow flag="🇬🇧" name="English" selected={selectedLanguage === 'English'} onClick={() => setSelectedLanguage('English')} />
-                  <LanguageRow flag="🇰🇪" name="Sheng" selected={selectedLanguage === 'Sheng'} onClick={() => setSelectedLanguage('Sheng')} />
-                  <LanguageRow flag="🇫🇷" name="French" selected={selectedLanguage === 'French'} onClick={() => setSelectedLanguage('French')} />
+                  {[
+                    { flag: '🇰🇪', name: 'Swahili' },
+                    { flag: '🇬🇧', name: 'English' },
+                    { flag: '🇰🇪', name: 'Sheng' },
+                    { flag: '🇫🇷', name: 'French' },
+                  ].map(lang => (
+                    <div
+                      key={lang.name}
+                      onClick={() => setSelectedLanguage(lang.name)}
+                      className={`w-full p-4 rounded-2xl flex items-center justify-between border-2 transition-all cursor-pointer ${
+                        selectedLanguage === lang.name
+                          ? 'bg-gradient-to-r from-[#E8462A] to-[#F55F44] border-transparent text-white scale-[1.02] shadow-lg'
+                          : 'bg-[#171717] border-[#262626] text-gray-300'
+                      }`}
+                    >
+                      {lang.name}
+                      <span>{lang.flag}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <PillButton onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', 'true'); }} variant="primary">Continue</PillButton>
+              <button
+                onClick={() => setOnboardingStep(4)}
+                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
+              >
+                Continue →
+              </button>
             </div>
           )}
+
+          {/* SCREEN 4 — NAME CAPTURE (NEW) */}
+          {onboardingStep === 4 && (
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+              <div className="flex items-center">
+                <button onClick={() => setOnboardingStep(3)} className="text-sm font-bold text-gray-400">Back</button>
+              </div>
+              <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+                <div className="text-4xl">Karibu! 👋</div>
+                <div className="text-center space-y-2 w-full">
+                  <h2 className="text-2xl font-extrabold tracking-tight text-white">What's Your Name?</h2>
+                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">We'll use this to personalise your learning experience.</p>
+                </div>
+                <div className="w-full space-y-2">
+                  <input
+                    type="text"
+                    value={onboardingName}
+                    onChange={(e) => setOnboardingName(e.target.value)}
+                    className="w-full px-4 py-4 rounded-2xl bg-[#171717] border-2 border-[#262626] text-white text-base font-medium focus:outline-none focus:border-[#E8462A] placeholder-gray-600 text-center"
+                    placeholder="Enter your name"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === 'Enter' && onboardingName.trim()) completeOnboarding(); }}
+                  />
+                  <p className="text-[10px] text-gray-500 text-center">Press Enter or tap Continue to finish</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { if (onboardingName.trim()) completeOnboarding(); }}
+                disabled={!onboardingName.trim()}
+                className="w-full py-4 bg-[#E8462A] disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
+              >
+                {onboardingName.trim() ? `Let's Go, ${onboardingName.split(' ')[0]}! →` : 'Enter your name to continue'}
+              </button>
+            </div>
+          )}
+
+          {/* Dot indicators */}
+          <div className="flex justify-center gap-1.5 mt-4">
+            {[1, 2, 3, 4].map(s => (
+              <div
+                key={s}
+                className={`h-1.5 rounded-full transition-all ${
+                  onboardingStep === s ? 'w-6 bg-[#E8462A]' : 'w-1.5 bg-gray-600'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -549,69 +637,82 @@ export default function App() {
         {/* ROUTE 1: LANDING PAGE */}
         {currentRoute === 'landing' && (
           <div className="space-y-6 animate-fade-in">
-            {/* Banner image with Fredoka font styled */}
-            <div className="rounded-2xl overflow-hidden border-2 border-[#35477B] bg-white">
+            {/* HERO */}
+            <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-64">
               <img
-                src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800"
-                alt="Community Hub Study"
-                className="w-full h-44 object-cover"
+                src="https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=800&auto=format&fit=crop"
+                alt="Joyful African kids learning"
+                className="w-full h-full object-cover opacity-60"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                }}
               />
-            </div>
-
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">Harambee Educational Grid</h2>
-              <p className="text-xs opacity-90 leading-relaxed max-w-sm mx-auto">
-                Decentralized learning connecting Mathare, Kibera, Mukuru, and Kawangware volunteers with local students.
-              </p>
-            </div>
-
-            {/* ABOUT DARASAMTAANI SECTION */}
-            <div className={`${tc.card} p-5 rounded-xl space-y-4 bg-white/40`}>
-              <h3 className="text-sm font-black text-[#35477B] border-b pb-2">
-                Kuhusu DarasaMtaani — Darasa la Mtaani kwa Kila Mtoto
-              </h3>
-              <p className="text-[11px] opacity-90 leading-relaxed">
-                <strong>DarasaMtaani</strong> (&quot;Street Classroom&quot;) is a mobile-first community learning network connecting underserved primary school students in Nairobi&apos;s informal settlements — Mathare, Kibera, Mukuru, and Kawangware — with vetted local volunteer tutors and nearby community resource hubs.
-              </p>
-              <p className="text-[11px] opacity-90 leading-relaxed">
-                Built for Kenya&apos;s Competency-Based Curriculum (CBC) era, DarasaMtaani works without expensive devices, fast internet, or constant adult supervision. Instead, it runs as a local matching grid powered by three core systems:
-              </p>
-              <div className="space-y-3 pt-1">
-                <div className="text-[11px] leading-relaxed">
-                  <strong>🎓 Volunteer Tutor Matching</strong> — Teacher-training students and education graduates earn verified field-hour certificates (exportable to LinkedIn) by tutoring children and helping parents understand CBC concepts.
-                </div>
-                <div className="text-[11px] leading-relaxed">
-                  <strong>⚖️ Ubuntu Priority Score (UPS)</strong> — A fairness algorithm that prioritizes children from households facing the greatest time and resource pressure — not just whoever asks first.
-                </div>
-                <div className="text-[11px] leading-relaxed">
-                  <strong>🗺️ Harambee Hub Routing</strong> — Automatically directs students to the nearest community center, library, or NGO lab with the WiFi, tablets, or solar power they need — with built-in capacity limits to prevent overcrowding.
-                </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6 text-left">
+                <h2 className="text-3xl font-black text-white tracking-tight">
+                  Darasa Mtaani
+                </h2>
+                <p className="text-xs text-gray-300 font-medium">
+                  Community tutors. Local hubs. Real impact.
+                </p>
               </div>
-              <p className="text-[10px] opacity-80 italic border-t pt-2">
-                Every match is reviewed by a local Elder before it&apos;s confirmed, keeping the community in control of the technology.
-              </p>
             </div>
 
-            {/* CHOOSE YOUR ROLE SECTION */}
+            {/* PHOTO STRIP */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=400",
+                "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400",
+                "https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=400",
+              ].map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt="African learning mtaa"
+                  className="w-full h-20 object-cover rounded-xl border border-[#262626]"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* STATS ROW */}
+            <div className="grid grid-cols-3 gap-2.5 bg-[#171717] border border-[#262626] p-4 rounded-2xl text-center">
+              {[
+                { value: '4', label: 'Settlements' },
+                { value: '120+', label: 'Tutors' },
+                { value: '800+', label: 'Students' },
+              ].map(stat => (
+                <div key={stat.label}>
+                  <div className="text-lg font-black text-[#E8462A]">{stat.value}</div>
+                  <div className="text-[10px] text-gray-500 font-bold uppercase">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* ROLE SELECTION */}
             <div className="space-y-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider block text-center">Chagua Jukumu Lako (Select Role)</span>
-              
+              <div className="text-center">
+                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Ingia kama — Sign in as</span>
+              </div>
               <div className="grid grid-cols-2 gap-2.5">
                 {[
-                  { id: 'login-student', icon: "👦", label: "Mtoto", desc: "Student Login" },
-                  { id: 'login-parent', icon: "👩", label: "Mzazi", desc: "Parent Login" },
-                  { id: 'login-tutor', icon: "🎓", label: "Mshauri", desc: "Tutor Login" },
-                  { id: 'login-admin', icon: "🛡️", label: "Msimamizi", desc: "Elders board" }
+                  { id: 'login-student', emoji: '🧒', label: 'Mtoto', sub: 'Student' },
+                  { id: 'login-parent', emoji: '👩', label: 'Mzazi', sub: 'Parent' },
+                  { id: 'login-tutor', emoji: '🎓', label: 'Mshauri', sub: 'Tutor' },
+                  { id: 'login-admin', emoji: '🛡️', label: 'Msimamizi', sub: 'Elder Board' },
                 ].map(tile => (
-                  <button
+                  <div
                     key={tile.id}
                     onClick={() => setCurrentRoute(tile.id)}
-                    className={`${tc.card} hover:scale-[1.02] p-4.5 rounded-xl flex flex-col items-center justify-center text-center transition-all`}
+                    className="bg-[#171717] border border-[#262626] hover:border-[#E8462A]/50 p-5 rounded-2xl flex flex-col items-center gap-2 transition-all active:scale-[0.97] cursor-pointer"
                   >
-                    <span className="text-xl">{tile.icon}</span>
-                    <span className="text-xs font-bold block mt-1">{tile.label}</span>
-                    <span className="text-[9px] opacity-65">{tile.desc}</span>
-                  </button>
+                    <span className="text-2xl">{tile.emoji}</span>
+                    <div className="text-center">
+                      <div className="text-xs font-bold text-white">{tile.label}</div>
+                      <div className="text-[9px] text-gray-500 font-medium">{tile.sub}</div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -1034,6 +1135,23 @@ export default function App() {
               </div>
             </div>
 
+            {/* Motivational Banner (STEP 2c) */}
+            <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-36">
+              <img
+                src="https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=800&auto=format&fit=crop"
+                alt="Smiling African child"
+                className="w-full h-full object-cover opacity-50"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent flex flex-col justify-end p-4 text-left">
+                <span className="text-[9px] text-[#E8462A] font-bold uppercase tracking-wider">Daily Inspiration</span>
+                <h4 className="text-sm font-extrabold text-white">"Elimu ni uwezo"</h4>
+                <p className="text-[9px] text-gray-400 font-medium">Knowledge is power · Swahili proverb</p>
+              </div>
+            </div>
+
             {userRole === 'tutor' ? (
               // TUTOR DASHBOARD
               <div className="space-y-4">
@@ -1187,9 +1305,22 @@ export default function App() {
                 </div>
 
                 {/* SCHEDULE SESSION WITH NEXT TUTOR */}
-                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-3">
+                <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-3 text-left">
                   <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Tutoring Handshake</span>
-                  <p className="text-xs text-gray-400">Match instantly with local mentor {MOCK_TUTORS[0].name} ({MOCK_TUTORS[0].subjects[0]}).</p>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=150&auto=format&fit=crop"
+                      alt={MOCK_TUTORS[0].name}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-[#E8462A]"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                      }}
+                    />
+                    <div>
+                      <p className="text-xs text-white font-bold">{MOCK_TUTORS[0].name}</p>
+                      <p className="text-[10px] text-gray-400 font-medium">Match instantly · {MOCK_TUTORS[0].subjects[0]}</p>
+                    </div>
+                  </div>
                   <PillButton
                     onClick={() => alert(`Session scheduled with ${MOCK_TUTORS[0].name}! Requires elder PIN to verify.`)}
                     variant="primary"
@@ -1255,9 +1386,36 @@ export default function App() {
           <div className="space-y-4 animate-fade-in">
             <h3 className="text-base font-bold text-white">Harambee Study Centers</h3>
             
+            {/* Hubs page header (STEP 2d) */}
+            <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-32">
+              <img
+                src="https://images.unsplash.com/photo-1497486751825-1233686d5d80?q=80&w=800&auto=format&fit=crop"
+                alt="Harambee center"
+                className="w-full h-full object-cover opacity-55"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-4 text-left">
+                <h4 className="text-base font-black text-white">Harambee Study Centers</h4>
+                <p className="text-[10px] text-gray-300 font-medium">Find your nearest learning hub</p>
+              </div>
+            </div>
+            
             <div className="space-y-3">
               {MOCK_HUBS.map(hub => (
                 <div key={hub.id} className="bg-[#171717] border border-[#262626] p-5 rounded-2xl">
+                  {/* Hub cards background (STEP 2e) */}
+                  <div className="rounded-xl overflow-hidden border border-[#262626]/60 bg-[#0D0D0D] h-24 mb-3">
+                    <img
+                      src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=800&auto=format&fit=crop"
+                      alt="Hub study room"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                      }}
+                    />
+                  </div>
                   <div className="flex justify-between items-start">
                     <span className="font-bold block text-sm text-white">{hub.name}</span>
                     <span className="text-xs font-bold text-[#E8462A]">{hub.capacityStatus}% Full</span>
@@ -1282,6 +1440,22 @@ export default function App() {
         {currentRoute === 'badges' && userRole === 'tutor' && (
           <div className="space-y-4 animate-fade-in">
             <h3 className="text-base font-bold text-white">Tutor Badges Portfolio</h3>
+
+            {/* Badges page celebration header (STEP 2f) */}
+            <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-32">
+              <img
+                src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=800&auto=format&fit=crop"
+                alt="Your achievements"
+                className="w-full h-full object-cover opacity-55"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-4 text-left">
+                <h4 className="text-base font-black text-white">Your Badges</h4>
+                <p className="text-[10px] text-gray-300 font-medium">Earn badges for every milestone</p>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <BadgeCard
                 name="Kibera Pioneer"

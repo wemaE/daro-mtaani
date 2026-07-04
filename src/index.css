@@ -1,47 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
-@import "tailwindcss";
-@import "./styles/tokens.css";
+@import './styles/tokens.css';
+@import 'tailwindcss';
 
-@theme {
-  --font-sans: "Fredoka", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fredoka", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-
-  --color-brand-yellow: #E7E27C;
-  --color-brand-blue: #35477B;
-  --color-forest: #0A4A3C;
-  --color-forest-dark: #063028;
-  --color-forest-light: #0F6B56;
-  --color-gold: #E8A020;
-  --color-gold-light: #F5C060;
-  --color-gold-pale: #FDF3DC;
-  --color-sky: #1A7FBF;
-  --color-sky-light: #E6F4FF;
-  --color-coral: #D44E2A;
-  --color-sand: #F7F3EE;
-  --color-ink: #1A1814;
-
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-xl: 32px;
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-@layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .animate-slide-in-right {
-    animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #0D0D0D;
+  color: #F3F4F6;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+#root {
+  min-height: 100vh;
+  background-color: #0D0D0D;
+  color: #F3F4F6;
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+h1, h2, h3, h4, h5, h6 {
+  color: #FFFFFF;
 }
+
+p, span, li, label {
+  color: #D1D5DB;
+}
+
+input, select, textarea {
+  color: #1F2937;
+  background-color: #FFFFFF;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6B7280;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
