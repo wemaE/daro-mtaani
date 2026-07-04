@@ -419,18 +419,30 @@ export default function App() {
                 <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', ONBOARDING_VERSION); }} className="text-sm font-bold text-gray-500">Skip</button>
               </div>
               <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-                {/* Decorative photo strip (STEP 2h) */}
-                <div className="flex gap-1 justify-center mt-4">
+                {/* Logo center-aligned */}
+                <div className="flex flex-col items-center justify-center gap-2 select-none mb-2">
+                  <svg className="w-12 h-10 shrink-0" viewBox="0 0 100 80" fill="none">
+                    <path d="M10 10 C30 10, 48 20, 48 70 C48 70, 30 50, 10 50 Z" fill="#FF5A36" />
+                    <path d="M90 10 C70 10, 52 20, 52 70 C52 70, 70 50, 90 50 Z" fill="#FF5A36" />
+                  </svg>
+                  <div className="text-center">
+                    <h1 className="text-lg font-black tracking-tight text-white leading-none">Darasa MTAANI</h1>
+                    <span className="text-[9px] text-[#FF5A36] font-bold uppercase tracking-wider block mt-1">Learning Lives Next Door</span>
+                  </div>
+                </div>
+
+                {/* Decorative photo strip (STEP 2h) with joyful African children photos */}
+                <div className="flex gap-2 justify-center mt-2">
                   {[
-                    "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=100&auto=format&fit=crop",
-                    "https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=100&auto=format&fit=crop",
-                    "https://images.unsplash.com/photo-1497486751825-1233686d5d80?q=80&w=100&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=150&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=150&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=150&auto=format&fit=crop",
                   ].map((src, i) => (
                     <img
                       key={i}
                       src={src}
                       alt="African child learning"
-                      className="w-12 h-12 rounded-xl object-cover border border-[#262626]"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-[#262626]"
                       onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop'; }}
                     />
                   ))}
@@ -640,7 +652,7 @@ export default function App() {
             {/* HERO */}
             <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-64">
               <img
-                src="https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=800&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop"
                 alt="Joyful African kids learning"
                 className="w-full h-full object-cover opacity-60"
                 onError={(e) => {
@@ -660,9 +672,9 @@ export default function App() {
             {/* PHOTO STRIP */}
             <div className="grid grid-cols-3 gap-2">
               {[
-                "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=400",
-                "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400",
-                "https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=400",
+                "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=400&auto=format&fit=crop",
               ].map((src, i) => (
                 <img
                   key={i}
