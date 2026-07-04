@@ -356,22 +356,22 @@ export default function App() {
   // Theme settings mapping
   const themeClasses = {
     yellow: {
-      bg: highContrast ? 'bg-black text-white' : 'bg-[#E7E27C]',
-      text: highContrast ? 'text-white' : 'text-[#35477B]',
-      card: 'bg-[#FDFCE5] border-2 border-[#35477B]/20',
-      btn: 'bg-[#35477B] text-white hover:bg-[#253258]'
+      bg: 'bg-[#09090B]',
+      text: 'text-[#FF5A36]',
+      card: 'bg-[#18181B]/95 border border-[#27272A] shadow-xl',
+      btn: 'bg-gradient-to-r from-[#FF5A36] to-[#FFB300] text-white hover:opacity-90 transition-opacity'
     },
     blue: {
-      bg: 'bg-[#35477B]',
-      text: 'text-white',
-      card: 'bg-[#253258] border border-blue-400/20',
-      btn: 'bg-[#E7E27C] text-[#35477B] hover:bg-yellow-300'
+      bg: 'bg-[#0A1128]',
+      text: 'text-[#00B4D8]',
+      card: 'bg-[#1C2541]/95 border border-[#3A506B]/50 shadow-xl',
+      btn: 'bg-gradient-to-r from-[#00B4D8] to-[#90E0EF] text-slate-900 hover:opacity-90 transition-opacity'
     },
     forest: {
-      bg: 'bg-[#0A4A3C]',
-      text: 'text-white',
-      card: 'bg-[#063028] border border-emerald-500/25',
-      btn: 'bg-[#E8A020] text-forest-dark hover:bg-amber-400'
+      bg: 'bg-[#051C17]',
+      text: 'text-[#2ECC71]',
+      card: 'bg-[#0B251E]/95 border border-[#1F6E5B]/50 shadow-xl',
+      btn: 'bg-gradient-to-r from-[#2ECC71] to-[#27AE60] text-black hover:opacity-90 transition-opacity'
     }
   };
 
@@ -879,12 +879,12 @@ export default function App() {
         {/* ROUTE: PREFERENCES SELECTION */}
         {currentRoute === 'preferences' && (
           <div className={`${tc.card} p-6 rounded-2xl space-y-4 animate-fade-in`}>
-            <h3 className="text-base font-bold">Onboarding: Select Preferences</h3>
-            <p className="text-[11px] opacity-80">Choose your subject areas and study times so Scout can tailor local matching.</p>
+            <h3 className="text-base font-bold text-white">Onboarding: Select Preferences</h3>
+            <p className="text-xs text-gray-300">Choose your subject areas and study times so Scout can tailor local matching.</p>
             
             <div className="space-y-3">
               <div>
-                <span className="block text-xs font-bold mb-1">Subjects of Interest</span>
+                <span className="block text-xs font-bold text-gray-200 mb-1">Subjects of Interest</span>
                 <div className="flex flex-wrap gap-1.5">
                   {['Mathematics', 'Science', 'Kiswahili', 'Creative Arts'].map(sub => {
                     const isFav = preferredSubjects.includes(sub);
@@ -896,7 +896,7 @@ export default function App() {
                           else setPreferredSubjects([...preferredSubjects, sub]);
                         }}
                         className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
-                          isFav ? 'bg-[#35477B] text-white' : 'bg-white text-slate-700'
+                          isFav ? 'bg-[#FF5A36] text-white border-transparent' : 'bg-[#27272A] border-[#3F3F46] text-gray-300'
                         }`}
                       >
                         {sub}
@@ -907,7 +907,7 @@ export default function App() {
               </div>
 
               <div>
-                <span className="block text-xs font-bold mb-1">Preferred Time Blocks</span>
+                <span className="block text-xs font-bold text-gray-200 mb-1">Preferred Time Blocks</span>
                 <div className="flex flex-wrap gap-1.5">
                   {['Morning (Sat)', 'Afternoon (Sat)', 'Evening (Weekdays)'].map(t => {
                     const isPref = preferredTimes.includes(t);
@@ -919,7 +919,7 @@ export default function App() {
                           else setPreferredTimes([...preferredTimes, t]);
                         }}
                         className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
-                          isPref ? 'bg-[#35477B] text-white' : 'bg-white text-slate-700'
+                          isPref ? 'bg-[#FF5A36] text-white border-transparent' : 'bg-[#27272A] border-[#3F3F46] text-gray-300'
                         }`}
                       >
                         {t}
@@ -930,7 +930,7 @@ export default function App() {
               </div>
             </div>
 
-            <button onClick={handleSavePreferences} className={`w-full ${tc.btn} py-2 rounded-lg text-xs font-bold`}>
+            <button onClick={handleSavePreferences} className={`w-full ${tc.btn} py-2.5 rounded-xl text-xs font-bold`}>
               Save Preferences & Continue
             </button>
           </div>
