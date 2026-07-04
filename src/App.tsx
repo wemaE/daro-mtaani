@@ -396,7 +396,8 @@ export default function App() {
   }, [userRole]);
 
 const PHOTOS = {
-  hero:      'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?q=80&w=800&auto=format&fit=crop',
+  hero:      '/hero_classroom.jpg',
+  onboardingHero: '/onboarding_laptop.jpg',
   strip1:    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=400&auto=format&fit=crop',
   strip2:    'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop',
   strip3:    'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=400&auto=format&fit=crop',
@@ -472,7 +473,7 @@ const PHOTO_ERR = (e: React.SyntheticEvent) => { e.currentTarget.style.display='
                 <button onClick={() => { setIsOnboarded(true); }} className="text-sm font-bold text-gray-500">Skip</button>
               </div>
               <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-                <img src={PHOTOS.hero} alt="African kids" className="w-32 h-32 rounded-full object-cover border-2 border-[#262626]" onError={PHOTO_ERR} />
+                <img src={PHOTOS.onboardingHero} alt="African kids" className="w-32 h-32 rounded-full object-cover border-2 border-[#262626]" onError={PHOTO_ERR} />
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-extrabold tracking-tight text-white">Lessons Made for You</h2>
                   <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">Personalised sessions with vetted tutors adapt to each child's level, subject, and settlement.</p>
