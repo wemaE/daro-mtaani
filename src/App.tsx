@@ -396,7 +396,7 @@ export default function App() {
   }, [userRole]);
 
 const PHOTOS = {
-  hero:      'https://images.unsplash.com/photo-1588072405306-743f09de4444?q=80&w=800&auto=format&fit=crop',
+  hero:      'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?q=80&w=800&auto=format&fit=crop',
   strip1:    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=400&auto=format&fit=crop',
   strip2:    'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop',
   strip3:    'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=400&auto=format&fit=crop',
@@ -603,19 +603,6 @@ const PHOTO_ERR = (e: React.SyntheticEvent) => { e.currentTarget.style.display='
               </button>
             )}
 
-            {userRole&&(
-              <>
-                <button onClick={() => setCurrentRoute('dashboard')}
-                  className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer" title="Dashboard">
-                  <LayoutDashboard className="w-4 h-4" />
-                </button>
-                <button onClick={() => setCurrentRoute('hubs')}
-                  className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer" title="Hubs">
-                  <MapPin className="w-4 h-4" />
-                </button>
-              </>
-            )}
-
             {/* Tutorial Option shortcut */}
             <button
               onClick={() => setShowTutorial(true)}
@@ -657,7 +644,7 @@ const PHOTO_ERR = (e: React.SyntheticEvent) => { e.currentTarget.style.display='
           <div className="space-y-6 animate-fade-in">
             {/* HERO */}
             <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-64">
-              <img src={PHOTOS.hero} alt="Joyful African kids learning" className="w-full h-full object-cover opacity-60" onError={PHOTO_ERR} />
+              <img src={PHOTOS.hero} alt="Joyful African kids learning" className="w-full h-full object-cover opacity-60" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=800'; }} />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6 text-left">
                 <h2 className="text-3xl font-black text-white tracking-tight">Darasa Mtaani</h2>
                 <p className="text-xs text-gray-300 font-medium">Community tutors. Local hubs. Real impact.</p>
@@ -1342,10 +1329,10 @@ const PHOTO_ERR = (e: React.SyntheticEvent) => { e.currentTarget.style.display='
                   <div key={hub.id} className="bg-[#171717] border border-[#262626] p-4.5 rounded-2xl text-left">
                     <div className="rounded-xl overflow-hidden border border-[#262626]/60 bg-[#0D0D0D] h-28 mb-3">
                       <img
-                        src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=800&auto=format&fit=crop"
+                        src={PHOTOS.hubCard}
                         alt="Hub study room"
                         className="w-full h-full object-cover"
-                        onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop'; }}
+                        onError={PHOTO_ERR}
                       />
                     </div>
                     <div className="flex justify-between items-start">
@@ -1360,6 +1347,48 @@ const PHOTO_ERR = (e: React.SyntheticEvent) => { e.currentTarget.style.display='
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Settings & Configuration merged directly into Dashboard */}
+            <div className="bg-[#171717] border border-[#262626] p-5 rounded-2xl space-y-4 text-left">
+              <span className="block text-xs font-bold uppercase tracking-wider text-gray-400">Settings & Configuration</span>
+              
+              {/* Update Profile Form */}
+              <form onSubmit={handleUpdateProfile} className="space-y-2.5 pb-3 border-b border-[#262626]">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Profile Details</span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    placeholder="Full Name"
+                    className="flex-1 px-3 py-1.5 border border-[#262626] rounded-xl text-xs bg-[#0D0D0D] text-white focus:outline-none focus:border-[#E8462A]"
+                  />
+                  <button className="px-4 py-1.5 bg-[#E8462A] text-white text-[10px] font-bold rounded-xl hover:opacity-90">Update</button>
+                </div>
+              </form>
+
+              {/* Change Theme */}
+              <div className="space-y-2">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Application Theme</span>
+                <div className="flex gap-2">
+                  {[
+                    { id: 'yellow', label: 'Sunset Glow' },
+                    { id: 'blue', label: 'Midnight Blue' },
+                    { id: 'forest', label: 'Forest Green' }
+                  ].map(themeOpt => (
+                    <button
+                      key={themeOpt.id}
+                      onClick={() => setCurrentTheme(themeOpt.id as any)}
+                      className={`flex-1 py-2 rounded-xl text-[10px] font-bold border transition ${
+                        currentTheme === themeOpt.id ? 'bg-[#E8462A] border-transparent text-white' : 'bg-[#0D0D0D] border-[#262626] text-gray-300'
+                      }`}
+                    >
+                      {themeOpt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             
