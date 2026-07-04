@@ -83,6 +83,7 @@ export default function App() {
   const [onboardingStep, setOnboardingStep] = useState<number>(1);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('Swahili');
   const [onboardingName, setOnboardingName] = useState('');
+  const [showTutorial, setShowTutorial] = useState<boolean>(false);
 
   // Synchronize browser history and hash navigation
   useEffect(() => {
@@ -618,6 +619,26 @@ export default function App() {
               </button>
             )}
 
+            {/* Dashboard Shortcut in Task Bar Area */}
+            {userRole && (
+              <button
+                onClick={() => setCurrentRoute('dashboard')}
+                className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer"
+                title="Dashboard"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Tutorial Option shortcut */}
+            <button
+              onClick={() => setShowTutorial(true)}
+              className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer"
+              title="Tutorial Guide"
+            >
+              <Compass className="w-4 h-4" />
+            </button>
+
             {/* Cart/Wishlist Off-canvas Toggle */}
             <button
               onClick={() => setShowOffCanvas(true)}
@@ -652,11 +673,11 @@ export default function App() {
             {/* HERO */}
             <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-64">
               <img
-                src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1588072405306-743f09de4444?q=80&w=800&auto=format&fit=crop"
                 alt="Joyful African kids learning"
                 className="w-full h-full object-cover opacity-60"
                 onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1588072405306-743f09de4444?q=80&w=800&auto=format&fit=crop';
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6 text-left">
@@ -1343,6 +1364,35 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            {/* Hub Centers Grid included in Dashboard (STEP 2d/e) */}
+            <div className="space-y-3.5 pt-4 border-t border-[#262626]">
+              <span className="block text-xs font-bold uppercase tracking-wider text-gray-400 text-left">Harambee Study Centers</span>
+              <div className="grid grid-cols-1 gap-4">
+                {MOCK_HUBS.map(hub => (
+                  <div key={hub.id} className="bg-[#171717] border border-[#262626] p-4.5 rounded-2xl text-left">
+                    <div className="rounded-xl overflow-hidden border border-[#262626]/60 bg-[#0D0D0D] h-28 mb-3">
+                      <img
+                        src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=800&auto=format&fit=crop"
+                        alt="Hub study room"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop'; }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-bold text-sm text-white block">{hub.name}</span>
+                        <span className="text-[10px] text-gray-400 font-medium">{hub.settlement}</span>
+                      </div>
+                      <span className="text-xs font-bold text-[#FF5A36]">{hub.capacityStatus}% capacity</span>
+                    </div>
+                    <div className="w-full bg-[#0D0D0D] h-1.5 rounded-full overflow-hidden mt-2.5 border border-[#262626]">
+                      <div className="h-full bg-gradient-to-r from-[#FF5A36] to-[#FFB300]" style={{ width: `${hub.capacityStatus}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
             
             {/* DASHBOARD BOTTOM ACTIONS: BACK TO HOME & LOG OUT */}
             <div className="flex gap-3 pt-4 border-t border-[#262626]">
@@ -1628,6 +1678,33 @@ export default function App() {
                 {cartDownloadState === 'downloading' ? 'Downloading...' : 'Download Cart Packages'}
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 6. TUTORIAL OVERLAY MODAL */}
+      {showTutorial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-[#171717] border border-[#27272A] rounded-3xl p-6 space-y-4 text-left text-white shadow-2xl animate-fade-in">
+            <div className="flex justify-between items-center border-b border-[#262626] pb-3">
+              <span className="font-extrabold text-sm text-[#FF5A36] uppercase tracking-wider flex items-center gap-1.5">📖 DarasaMtaani Guide</span>
+              <button onClick={() => setShowTutorial(false)} className="p-1 hover:bg-[#27272A] rounded-full text-gray-400 hover:text-white cursor-pointer">
+                <X className="w-4.5 h-4.5" />
+              </button>
+            </div>
+            <div className="space-y-3.5 text-xs text-gray-300">
+              <p><strong>1. Register:</strong> Start by completing your onboarding name & preferences.</p>
+              <p><strong>2. Ubuntu Score (UPS):</strong> Your priority depends on family need, not just speed.</p>
+              <p><strong>3. Study Hubs:</strong> Locate offline study spaces with WiFi and solar power nearby.</p>
+              <p><strong>4. Local Tutors:</strong> Match with qualified volunteer mentors in your neighborhood.</p>
+              <p><strong>5. Elder PIN:</strong> For safety, all sessions must be unlocked with a local Elder PIN.</p>
+            </div>
+            <button
+              onClick={() => setShowTutorial(false)}
+              className="w-full py-3.5 bg-gradient-to-r from-[#FF5A36] to-[#FFB300] text-white font-bold rounded-full text-xs shadow-lg active:scale-[0.98] transition-transform cursor-pointer"
+            >
+              Close Guide & Start
+            </button>
           </div>
         </div>
       )}
