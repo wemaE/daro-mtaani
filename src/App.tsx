@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { StudentIcon, ParentIcon, TutorIcon, ElderIcon } from './components/RoleIcons';
 import { supabase } from './lib/supabase';
 import { LANDMARKS, Landmark, getLandmarksBySettlement } from './lib/landmarks';
 import {
@@ -76,10 +77,7 @@ export default function App() {
   const [routeHistory, setRouteHistory] = useState<string[]>([getRouteFromHash()]);
 
   // Onboarding States
-  const ONBOARDING_VERSION = 'v3';
-  const [isOnboarded, setIsOnboarded] = useState<boolean>(() => {
-    return localStorage.getItem('daro_onboarded') === ONBOARDING_VERSION;
-  });
+  const [isOnboarded, setIsOnboarded] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<number>(1);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('Swahili');
   const [onboardingName, setOnboardingName] = useState('');
@@ -136,9 +134,7 @@ export default function App() {
   // Auth state
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'tutor' | 'admin' | null>(null);
   const [userPhone, setUserPhone] = useState<string>('');
-  const [profileName, setProfileName] = useState<string>(() => {
-    return localStorage.getItem('daro_user_name') || 'Mwanafunzi';
-  });
+  const [profileName, setProfileName] = useState(() => localStorage.getItem('daro_user_name') || 'Mwanafunzi');
   const [otpSent, setOtpSent] = useState<boolean>(false);
   const [otpCode, setOtpCode] = useState<string>('');
   const [adminEmail, setAdminEmail] = useState<string>('');
@@ -310,6 +306,10 @@ export default function App() {
     setOtpSent(false);
     setOtpCode('');
     setCurrentRoute('landing');
+    setIsOnboarded(false);
+    setOnboardingStep(1);
+    setOnboardingName('');
+    setSelectedLanguage('Swahili');
   };
 
   // Calculate UPS Score
@@ -388,108 +388,117 @@ export default function App() {
   const activeTermObject = CBC_DICTIONARY.find(term => term.term === selectedWord) || CBC_DICTIONARY[0];
 
   const navigationTabs = useMemo(() => {
-    const tabs = [
-      { id: 'dashboard', label: 'Dash', icon: LayoutDashboard },
-      { id: 'hubs', label: 'Hubs', icon: MapPin }
-    ];
-    if (userRole === 'tutor') {
-      tabs.push({ id: 'badges', label: 'Badges', icon: Award });
-    }
-    if (userRole === 'parent') {
-      tabs.push({ id: 'parent', label: 'Parent', icon: BookOpen });
-    }
+    const tabs: {id:string;label:string;icon:any}[] = [];
+    if (userRole==='tutor') tabs.push({id:'badges',label:'Badges',icon:Award});
+    if (userRole==='parent') tabs.push({id:'parent',label:'CBC Guide',icon:BookOpen});
+    if (userRole==='admin') tabs.push({id:'admin-council',label:'Council',icon:ShieldCheck});
     return tabs;
   }, [userRole]);
 
+const PHOTOS = {
+  hero:      'https://images.unsplash.com/photo-1588072405306-743f09de4444?q=80&w=800&auto=format&fit=crop',
+  strip1:    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=400&auto=format&fit=crop',
+  strip2:    'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop',
+  strip3:    'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=400&auto=format&fit=crop',
+  dashboard: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=800&auto=format&fit=crop',
+  hubs:      'https://images.unsplash.com/photo-1497486751825-1233686d5d80?q=80&w=800&auto=format&fit=crop',
+  hubCard:   'https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=400&auto=format&fit=crop',
+  badges:    'https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=800&auto=format&fit=crop',
+};
+const PHOTO_ERR = (e: React.SyntheticEvent) => { e.currentTarget.style.display='none'; };
+
   if (!isOnboarded) {
     const completeOnboarding = () => {
-      const finalName = onboardingName.trim() || 'Mwanafunzi';
-      setProfileName(finalName);
-      localStorage.setItem('daro_user_name', finalName);
-      localStorage.setItem('daro_onboarded', ONBOARDING_VERSION);
+      const name = onboardingName.trim() || 'Mwanafunzi';
+      setProfileName(name);
+      localStorage.setItem('daro_user_name', name);
       setIsOnboarded(true);
     };
 
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-[#0D0D0D] rounded-3xl overflow-hidden shadow-2xl relative border border-[#262626] aspect-[9/16] flex flex-col justify-between p-6">
+          {/* Dot indicators */}
+          <div className="flex justify-center gap-1.5 mt-2">
+            {[1,2,3,4].map(s=>(
+              <div
+                key={s}
+                className={`h-1.5 rounded-full transition-all ${onboardingStep===s?'w-6 bg-[#E8462A]':'w-1.5 bg-gray-600'}`}
+              />
+            ))}
+          </div>
+
           {/* SCREEN 1 */}
-          {onboardingStep === 1 && (
-            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+          {onboardingStep===1&&(
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in">
               <div className="flex justify-end">
-                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', ONBOARDING_VERSION); }} className="text-sm font-bold text-gray-500">Skip</button>
+                <button onClick={() => { setIsOnboarded(true); }} className="text-sm font-bold text-gray-500">Skip</button>
               </div>
               <div className="flex-1 flex flex-col items-center justify-center space-y-6">
                 {/* Logo center-aligned */}
                 <div className="flex flex-col items-center justify-center gap-2 select-none mb-2">
                   <svg className="w-12 h-10 shrink-0" viewBox="0 0 100 80" fill="none">
-                    <path d="M10 10 C30 10, 48 20, 48 70 C48 70, 30 50, 10 50 Z" fill="#FF5A36" />
-                    <path d="M90 10 C70 10, 52 20, 52 70 C52 70, 70 50, 90 50 Z" fill="#FF5A36" />
+                    <path d="M10 10 C30 10, 48 20, 48 70 C48 70, 30 50, 10 50 Z" fill="#E8462A" />
+                    <path d="M90 10 C70 10, 52 20, 52 70 C52 70, 70 50, 90 50 Z" fill="#E8462A" />
                   </svg>
                   <div className="text-center">
                     <h1 className="text-lg font-black tracking-tight text-white leading-none">Darasa MTAANI</h1>
-                    <span className="text-[9px] text-[#FF5A36] font-bold uppercase tracking-wider block mt-1">Learning Lives Next Door</span>
+                    <span className="text-[9px] text-[#E8462A] font-bold uppercase tracking-wider block mt-1">Learning Lives Next Door</span>
                   </div>
-                </div>
-
-                {/* Decorative photo strip (STEP 2h) with joyful African children photos */}
-                <div className="flex gap-2 justify-center mt-2">
-                  {[
-                    "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=150&auto=format&fit=crop",
-                    "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=150&auto=format&fit=crop",
-                    "https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=150&auto=format&fit=crop",
-                  ].map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt="African child learning"
-                      className="w-14 h-14 rounded-full object-cover border-2 border-[#262626]"
-                      onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop'; }}
-                    />
-                  ))}
                 </div>
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-extrabold tracking-tight text-white">Learning Lives Next Door</h2>
-                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">Connecting Nairobi's brightest young minds with vetted community tutors — right in your mtaa.</p>
+                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">Connecting Nairobi's brightest minds with vetted community tutors — right in your mtaa.</p>
+                </div>
+                <div className="flex gap-2 justify-center mt-2">
+                  {[PHOTOS.strip1,PHOTOS.strip2,PHOTOS.strip3].map((src,i)=>(
+                    <img key={i} src={src} alt="African kids learning" className="w-14 h-14 rounded-full object-cover border-2 border-[#262626]" onError={PHOTO_ERR} />
+                  ))}
                 </div>
               </div>
               <button
                 onClick={() => setOnboardingStep(2)}
-                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
-              >
+                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98] animate-pulse-glow">
                 Get Started →
               </button>
             </div>
           )}
 
           {/* SCREEN 2 */}
-          {onboardingStep === 2 && (
-            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+          {onboardingStep===2&&(
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in">
               <div className="flex justify-between items-center">
-                <button onClick={() => setOnboardingStep(1)} className="text-sm font-bold text-gray-400">Back</button>
-                <button onClick={() => { setIsOnboarded(true); localStorage.setItem('daro_onboarded', ONBOARDING_VERSION); }} className="text-sm font-bold text-gray-500">Skip</button>
+                <button onClick={() => setOnboardingStep(1)} className="text-xs font-bold text-gray-400 bg-white/5px px-3 py-1 rounded-full">Back</button>
+                <button onClick={() => { setIsOnboarded(true); }} className="text-sm font-bold text-gray-500">Skip</button>
               </div>
               <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-                <span className="text-3xl">★ ★ ★</span>
+                <img src={PHOTOS.hero} alt="African kids" className="w-32 h-32 rounded-full object-cover border-2 border-[#262626]" onError={PHOTO_ERR} />
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-extrabold tracking-tight text-white">Lessons Made for You</h2>
-                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">Personalized sessions with vetted tutors adapt to each child's level, subject, and settlement.</p>
+                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">Personalised sessions with vetted tutors adapt to each child's level, subject, and settlement.</p>
+                </div>
+                <div className="grid grid-cols-3 gap-2.5 w-full text-center bg-[#171717] border border-[#262626] p-3 rounded-2xl">
+                  {[{v:'4',l:'Settlements'},{v:'120+',l:'Tutors'},{v:'800+',l:'Students'}].map(s=>(
+                    <div key={s.l}>
+                      <div className="text-base font-black text-[#E8462A]">{s.v}</div>
+                      <div className="text-[9px] text-gray-500 font-bold uppercase">{s.l}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
               <button
                 onClick={() => setOnboardingStep(3)}
-                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
-              >
-                Choose a Language →
+                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98] animate-pulse-glow">
+                Choose Language →
               </button>
             </div>
           )}
 
           {/* SCREEN 3 — LANGUAGE */}
-          {onboardingStep === 3 && (
-            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+          {onboardingStep===3&&(
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in">
               <div className="flex items-center">
-                <button onClick={() => setOnboardingStep(2)} className="text-sm font-bold text-gray-400">Back</button>
+                <button onClick={() => setOnboardingStep(2)} className="text-xs font-bold text-gray-400 bg-[#171717] px-3 py-1 rounded-full">Back</button>
               </div>
               <div className="flex-1 flex flex-col justify-center space-y-6 py-4">
                 <div className="space-y-2 text-center">
@@ -497,21 +506,11 @@ export default function App() {
                   <p className="text-xs text-gray-400">Select your preferred instruction language.</p>
                 </div>
                 <div className="space-y-2">
-                  {[
-                    { flag: '🇰🇪', name: 'Swahili' },
-                    { flag: '🇬🇧', name: 'English' },
-                    { flag: '🇰🇪', name: 'Sheng' },
-                    { flag: '🇫🇷', name: 'French' },
-                  ].map(lang => (
+                  {[{flag:'🇰🇪',name:'Swahili'},{flag:'🇬🇧',name:'English'},{flag:'🇰🇪',name:'Sheng'},{flag:'🇫🇷',name:'French'}].map(lang=>(
                     <div
                       key={lang.name}
                       onClick={() => setSelectedLanguage(lang.name)}
-                      className={`w-full p-4 rounded-2xl flex items-center justify-between border-2 transition-all cursor-pointer ${
-                        selectedLanguage === lang.name
-                          ? 'bg-gradient-to-r from-[#E8462A] to-[#F55F44] border-transparent text-white scale-[1.02] shadow-lg'
-                          : 'bg-[#171717] border-[#262626] text-gray-300'
-                      }`}
-                    >
+                      className={`w-full p-4 rounded-2xl flex items-center justify-between border-2 transition-all duration-200 cursor-pointer ${selectedLanguage===lang.name?'bg-gradient-to-r from-[#E8462A] to-[#F55F44] border-transparent text-white scale-[1.02] shadow-lg':'bg-[#171717] border-[#262626] text-gray-300 hover:border-gray-600'}`}>
                       {lang.name}
                       <span>{lang.flag}</span>
                     </div>
@@ -520,59 +519,44 @@ export default function App() {
               </div>
               <button
                 onClick={() => setOnboardingStep(4)}
-                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
-              >
+                className="w-full py-4 bg-[#E8462A] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]">
                 Continue →
               </button>
             </div>
           )}
 
-          {/* SCREEN 4 — NAME CAPTURE (NEW) */}
-          {onboardingStep === 4 && (
-            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in animate-duration-300">
+          {/* SCREEN 4 — NAME CAPTURE */}
+          {onboardingStep===4&&(
+            <div className="flex-1 flex flex-col justify-between text-white bg-[#0D0D0D] -m-6 p-6 rounded-3xl animate-fade-in">
               <div className="flex items-center">
-                <button onClick={() => setOnboardingStep(3)} className="text-sm font-bold text-gray-400">Back</button>
+                <button onClick={() => setOnboardingStep(3)} className="text-xs font-bold text-gray-400 bg-[#171717] px-3 py-1 rounded-full">Back</button>
               </div>
               <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-                <div className="text-4xl">Karibu! 👋</div>
-                <div className="text-center space-y-2 w-full">
+                <div className="text-4xl">
+                  <span className="inline-block animate-bounce">👋</span>
+                </div>
+                <div className="text-center space-y-2">
                   <h2 className="text-2xl font-extrabold tracking-tight text-white">What's Your Name?</h2>
-                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">We'll use this to personalise your learning experience.</p>
+                  <p className="text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">We'll personalise your experience.</p>
                 </div>
-                <div className="w-full space-y-2">
-                  <input
-                    type="text"
-                    value={onboardingName}
-                    onChange={(e) => setOnboardingName(e.target.value)}
-                    className="w-full px-4 py-4 rounded-2xl bg-[#171717] border-2 border-[#262626] text-white text-base font-medium focus:outline-none focus:border-[#E8462A] placeholder-gray-600 text-center"
-                    placeholder="Enter your name"
-                    autoFocus
-                    onKeyDown={(e) => { if (e.key === 'Enter' && onboardingName.trim()) completeOnboarding(); }}
-                  />
-                  <p className="text-[10px] text-gray-500 text-center">Press Enter or tap Continue to finish</p>
-                </div>
+                <input
+                  type="text"
+                  value={onboardingName}
+                  onChange={(e)=>setOnboardingName(e.target.value)}
+                  onKeyDown={(e)=>{ if(e.key==='Enter'&&onboardingName.trim()) completeOnboarding(); }}
+                  className="w-full px-4 py-4 rounded-2xl bg-[#171717] border-2 border-[#262626] text-white text-base font-medium focus:outline-none focus:border-[#E8462A] text-center placeholder-gray-600"
+                  placeholder="Enter your name"
+                  autoFocus
+                />
               </div>
               <button
                 onClick={() => { if (onboardingName.trim()) completeOnboarding(); }}
                 disabled={!onboardingName.trim()}
-                className="w-full py-4 bg-[#E8462A] disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]"
-              >
-                {onboardingName.trim() ? `Let's Go, ${onboardingName.split(' ')[0]}! →` : 'Enter your name to continue'}
+                className="w-full py-4 bg-[#E8462A] disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm shadow-lg active:scale-[0.98]">
+                {onboardingName.trim()?`Let's Go, ${onboardingName.split(' ')[0]}! →`:'Enter your name to continue'}
               </button>
             </div>
           )}
-
-          {/* Dot indicators */}
-          <div className="flex justify-center gap-1.5 mt-4">
-            {[1, 2, 3, 4].map(s => (
-              <div
-                key={s}
-                className={`h-1.5 rounded-full transition-all ${
-                  onboardingStep === s ? 'w-6 bg-[#E8462A]' : 'w-1.5 bg-gray-600'
-                }`}
-              />
-            ))}
-          </div>
         </div>
       </div>
     );
@@ -619,15 +603,17 @@ export default function App() {
               </button>
             )}
 
-            {/* Dashboard Shortcut in Task Bar Area */}
-            {userRole && (
-              <button
-                onClick={() => setCurrentRoute('dashboard')}
-                className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer"
-                title="Dashboard"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-              </button>
+            {userRole&&(
+              <>
+                <button onClick={() => setCurrentRoute('dashboard')}
+                  className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer" title="Dashboard">
+                  <LayoutDashboard className="w-4 h-4" />
+                </button>
+                <button onClick={() => setCurrentRoute('hubs')}
+                  className="p-1.5 rounded-full hover:bg-[#171717] text-gray-400 hover:text-white cursor-pointer" title="Hubs">
+                  <MapPin className="w-4 h-4" />
+                </button>
+              </>
             )}
 
             {/* Tutorial Option shortcut */}
@@ -667,55 +653,27 @@ export default function App() {
       {/* 3. MAIN CONTAINER */}
       <main className="max-w-md mx-auto px-4 py-6 pb-28">
         
-        {/* ROUTE 1: LANDING PAGE */}
-        {currentRoute === 'landing' && (
+        {currentRoute==='landing'&&(
           <div className="space-y-6 animate-fade-in">
             {/* HERO */}
             <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-64">
-              <img
-                src="https://images.unsplash.com/photo-1588072405306-743f09de4444?q=80&w=800&auto=format&fit=crop"
-                alt="Joyful African kids learning"
-                className="w-full h-full object-cover opacity-60"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1588072405306-743f09de4444?q=80&w=800&auto=format&fit=crop';
-                }}
-              />
+              <img src={PHOTOS.hero} alt="Joyful African kids learning" className="w-full h-full object-cover opacity-60" onError={PHOTO_ERR} />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6 text-left">
-                <h2 className="text-3xl font-black text-white tracking-tight">
-                  Darasa Mtaani
-                </h2>
-                <p className="text-xs text-gray-300 font-medium">
-                  Community tutors. Local hubs. Real impact.
-                </p>
+                <h2 className="text-3xl font-black text-white tracking-tight">Darasa Mtaani</h2>
+                <p className="text-xs text-gray-300 font-medium">Community tutors. Local hubs. Real impact.</p>
               </div>
             </div>
 
             {/* PHOTO STRIP */}
             <div className="grid grid-cols-3 gap-2">
-              {[
-                "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=400&auto=format&fit=crop",
-              ].map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt="African learning mtaa"
-                  className="w-full h-20 object-cover rounded-xl border border-[#262626]"
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
-                  }}
-                />
+              {[PHOTOS.strip1,PHOTOS.strip2,PHOTOS.strip3].map((src,i)=>(
+                <img key={i} src={src} alt="African learning mtaa" className="w-full h-20 object-cover rounded-xl border border-[#262626]" onError={PHOTO_ERR} />
               ))}
             </div>
 
             {/* STATS ROW */}
             <div className="grid grid-cols-3 gap-2.5 bg-[#171717] border border-[#262626] p-4 rounded-2xl text-center">
-              {[
-                { value: '4', label: 'Settlements' },
-                { value: '120+', label: 'Tutors' },
-                { value: '800+', label: 'Students' },
-              ].map(stat => (
+              {[{value:'4',label:'Settlements'},{value:'120+',label:'Tutors'},{value:'800+',label:'Students'}].map(stat=>(
                 <div key={stat.label}>
                   <div className="text-lg font-black text-[#E8462A]">{stat.value}</div>
                   <div className="text-[10px] text-gray-500 font-bold uppercase">{stat.label}</div>
@@ -730,20 +688,21 @@ export default function App() {
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 {[
-                  { id: 'login-student', emoji: '🧒', label: 'Mtoto', sub: 'Student' },
-                  { id: 'login-parent', emoji: '👩', label: 'Mzazi', sub: 'Parent' },
-                  { id: 'login-tutor', emoji: '🎓', label: 'Mshauri', sub: 'Tutor' },
-                  { id: 'login-admin', emoji: '🛡️', label: 'Msimamizi', sub: 'Elder Board' },
-                ].map(tile => (
+                  {id:'login-student',Icon:StudentIcon,label:'Mtoto',sub:'Student',grad:'from-blue-950/60 to-blue-900/30',border:'border-blue-800/40 hover:border-blue-500/60'},
+                  {id:'login-parent',Icon:ParentIcon,label:'Mzazi',sub:'Parent',grad:'from-green-950/60 to-green-900/30',border:'border-green-800/40 hover:border-green-500/60'},
+                  {id:'login-tutor',Icon:TutorIcon,label:'Mshauri',sub:'Tutor',grad:'from-amber-950/60 to-amber-900/30',border:'border-amber-800/40 hover:border-amber-500/60'},
+                  {id:'login-admin',Icon:ElderIcon,label:'Msimamizi',sub:'Elder Board',grad:'from-red-950/60 to-red-900/30',border:'border-red-800/40 hover:border-red-500/60'},
+                ].map(({id,Icon,label,sub,grad,border})=>(
                   <div
-                    key={tile.id}
-                    onClick={() => setCurrentRoute(tile.id)}
-                    className="bg-[#171717] border border-[#262626] hover:border-[#E8462A]/50 p-5 rounded-2xl flex flex-col items-center gap-2 transition-all active:scale-[0.97] cursor-pointer"
-                  >
-                    <span className="text-2xl">{tile.emoji}</span>
+                    key={id}
+                    onClick={() => setCurrentRoute(id)}
+                    className={`bg-gradient-to-b ${grad} border ${border} p-5 rounded-2xl flex flex-col items-center gap-3 transition-all duration-200 active:scale-[0.96] cursor-pointer group`}>
+                    <div className="w-16 h-16 rounded-full bg-black/40 border border-[#262626] flex items-center justify-center">
+                      <Icon />
+                    </div>
                     <div className="text-center">
-                      <div className="text-xs font-bold text-white">{tile.label}</div>
-                      <div className="text-[9px] text-gray-500 font-medium">{tile.sub}</div>
+                      <div className="text-sm font-bold text-white group-hover:text-[#FF5A36] transition-colors">{label}</div>
+                      <div className="text-[9px] text-gray-500 font-medium">{sub}</div>
                     </div>
                   </div>
                 ))}
@@ -755,6 +714,10 @@ export default function App() {
         {/* ROUTE: LOGIN STUDENT */}
         {currentRoute === 'login-student' && (
           <div className={`${tc.card} p-6 rounded-2xl space-y-4 animate-fade-in`}>
+            <div className="relative rounded-xl overflow-hidden border border-[#262626] bg-[#171717] h-20 mb-3 flex items-center justify-center">
+              <img src={PHOTOS.strip1} alt="Karibu" className="absolute inset-0 w-full h-full object-cover opacity-40" onError={PHOTO_ERR} />
+              <span className="relative font-extrabold text-sm text-white uppercase tracking-wider">Karibu 👋</span>
+            </div>
             <h3 className="text-base font-bold">Mtoto Login (Student)</h3>
             <form onSubmit={handleRequestOtp} className="space-y-3">
               <input
@@ -796,6 +759,10 @@ export default function App() {
         {/* ROUTE: LOGIN PARENT */}
         {currentRoute === 'login-parent' && (
           <div className={`${tc.card} p-6 rounded-2xl space-y-4 animate-fade-in`}>
+            <div className="relative rounded-xl overflow-hidden border border-[#262626] bg-[#171717] h-20 mb-3 flex items-center justify-center">
+              <img src={PHOTOS.strip2} alt="Karibu" className="absolute inset-0 w-full h-full object-cover opacity-40" onError={PHOTO_ERR} />
+              <span className="relative font-extrabold text-sm text-white uppercase tracking-wider">Karibu 👋</span>
+            </div>
             <h3 className="text-base font-bold">Mzazi Login (Parent)</h3>
             <form onSubmit={handleRequestOtp} className="space-y-3">
               <input
@@ -832,6 +799,10 @@ export default function App() {
         {/* ROUTE: LOGIN TUTOR */}
         {currentRoute === 'login-tutor' && (
           <div className={`${tc.card} p-6 rounded-2xl space-y-4 animate-fade-in`}>
+            <div className="relative rounded-xl overflow-hidden border border-[#262626] bg-[#171717] h-20 mb-3 flex items-center justify-center">
+              <img src={PHOTOS.strip3} alt="Karibu" className="absolute inset-0 w-full h-full object-cover opacity-40" onError={PHOTO_ERR} />
+              <span className="relative font-extrabold text-sm text-white uppercase tracking-wider">Karibu 👋</span>
+            </div>
             <h3 className="text-base font-bold">Mshauri Login (Tutor)</h3>
             <form onSubmit={handleRequestOtp} className="space-y-3">
               <input
@@ -1171,12 +1142,10 @@ export default function App() {
             {/* Motivational Banner (STEP 2c) */}
             <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-36">
               <img
-                src="https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=800&auto=format&fit=crop"
+                src={PHOTOS.dashboard}
                 alt="Smiling African child"
                 className="w-full h-full object-cover opacity-50"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
-                }}
+                onError={PHOTO_ERR}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent flex flex-col justify-end p-4 text-left">
                 <span className="text-[9px] text-[#E8462A] font-bold uppercase tracking-wider">Daily Inspiration</span>
@@ -1451,12 +1420,10 @@ export default function App() {
             {/* Hubs page header (STEP 2d) */}
             <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-32">
               <img
-                src="https://images.unsplash.com/photo-1497486751825-1233686d5d80?q=80&w=800&auto=format&fit=crop"
+                src={PHOTOS.hubs}
                 alt="Harambee center"
                 className="w-full h-full object-cover opacity-55"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
-                }}
+                onError={PHOTO_ERR}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-4 text-left">
                 <h4 className="text-base font-black text-white">Harambee Study Centers</h4>
@@ -1470,12 +1437,10 @@ export default function App() {
                   {/* Hub cards background (STEP 2e) */}
                   <div className="rounded-xl overflow-hidden border border-[#262626]/60 bg-[#0D0D0D] h-24 mb-3">
                     <img
-                      src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=800&auto=format&fit=crop"
+                      src={PHOTOS.hubCard}
                       alt="Hub study room"
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
-                      }}
+                      onError={PHOTO_ERR}
                     />
                   </div>
                   <div className="flex justify-between items-start">
@@ -1506,16 +1471,13 @@ export default function App() {
             {/* Badges page celebration header (STEP 2f) */}
             <div className="relative rounded-2xl overflow-hidden border border-[#262626] bg-[#171717] h-32">
               <img
-                src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=800&auto=format&fit=crop"
+                src={PHOTOS.badges}
                 alt="Your achievements"
                 className="w-full h-full object-cover opacity-55"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
-                }}
+                onError={PHOTO_ERR}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-4 text-left">
-                <h4 className="text-base font-black text-white">Your Badges</h4>
-                <p className="text-[10px] text-gray-300 font-medium">Earn badges for every milestone</p>
+                <h4 className="text-base font-black text-white">Your Badges 🏆</h4>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -1610,7 +1572,7 @@ export default function App() {
       </main>
 
       {/* 4. MASTER MOBILE BOTTOM NAVIGATION */}
-      {userRole && (
+      {navigationTabs.length>0&&(
         <BottomNav
           currentTab={currentRoute}
           onChange={setCurrentRoute}
